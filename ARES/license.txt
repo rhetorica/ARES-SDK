@@ -1,0 +1,52 @@
+
+In the text below, <YEAR> is 2022-2024. Substitute this value when including attribution in any distributions.
+
+This version of ARES is copyright <YEAR> by Nanite Systems Corporation (hereafter, the Corporation). It is proprietary software. Its use is subject to the terms of the Nanite Systems EULA ( http://support.nanite-systems.com/?id=216 ).
+
+Preamble. To facilitate community involvement in the ARES ecosystem, we have included the source code for some ARES utilities and system components. These individual files are provided under various terms, described below.
+
+Section 1. Files marked 'ASCL-i' are to be considered proprietary. They are offered to you on a limited basis to facilitate modification and customization.
+
+You may distribute modified ASCL-i files to other ARES users provided they remain full-permissions, are offered free of charge, and retain proper copyright markings. You may not create other derivative works of ASCL-i programs.
+
+The Corporation reserves the right to collect, alter, and distribute such modifications covered by this section, including by adding them to the standard distribution.
+
+We may also take action (as outlined in the EULA) against abusive, harmful, or misleading modifications, as we police other third-party products that represent potential or real harms to the community or the Corporation.
+
+By releasing a modification to code covered under this section, you are donating your work to the Corporation and to its customers.
+
+The Corporation may elect to withdraw ASCL-i licensing for new versions of a file (see 'Unforeseeable futures', below), but this does not affect previously-released versions.
+
+Section 2. Files marked 'ASCL-ii' are provided under a modified copyleft license. Although they appear here in ARES as part of commercial software, they may be used as the basis of derivative, non-profit works that retain a compatible license.
+
+Derivative works of ASCL-ii software must retain proper attribution in documentation and source code, such as: Based on <FILENAME> from Nanite Systems ARES. Copyright <YEAR> Nanite Systems Corporation. Licensed under ASCL-ii.
+
+Additionally, ASCL-ii derivative products must be distributed free of charge and with legible source code. (LSL scripts need not be full permissions; a copy/transfer notecard is sufficient.) A copy of this copyright license must be included.
+
+ASCL-ii code may be used in GNU General Public License (GPL) projects, provided the above attribution is preserved.
+
+Section 3. Files marked 'ASCL-iii' are provided under a 'BSD-style' license. They may be redistributed or used as the basis of commercial, closed-source products so long as the following terms are abided. The ARES SDK uses this license.
+
+Based on code from Nanite Systems ARES. Copyright <YEAR> Nanite Systems Corporation.
+
+i. Redistributions of source code must retain a copy of these conditions, the above copyright notice, and the disclaimer below.
+ii. Redistributions in binary form must include the copyright notice in the documentation and/or other materials provided with the distribution as defined above.
+iii. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+The ASCL-iii license is intended to be compatible with a three-clause BSD license.
+
+Section 4. Files marked 'ASCL-iv' are closed-source, proprietary, commercial code. Aside from the following disclaimer and the copyright text, you may not distribute them under any circumstance for the foreseeable future.
+
+Section 5. Unforeseeable futures. The Corporation retains full control over ASCL-i and -iv code. It may, at any time and at its sole discretion, elect to release this code under a different license.
+
+For example, ASCL-i coverage may be withdrawn to protect trade secrets in new versions of relevant code, or to convert ARES into a copyleft project in the event that the Corporation cannot continue to operate on a commercial basis.
+
+Section 6. Disclaimer. The following must be included with all ASCL-licensed code:
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DAMAGES HOWEVER CAUSED ON ANY THEORY OF LIABILITY ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+This is an abridged version of the BSD disclaimer. The text is interchangeable with that disclaimer.
+
+Section 7. Further Information. Additional insight regarding Nanite Systems copyrights can be obtained by e-mailing support@nanite-systems.com. The latest version of this license can be obtained by visiting http://nanite-systems.com/ASCL.

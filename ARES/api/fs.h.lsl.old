@@ -1,0 +1,69 @@
+
+/* =========================================================================
+ *
+ *           Nanite Systems Advanced Research Encapsulation System
+ *  
+ *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *  
+ * =========================================================================
+ *
+ *  FS.H.LSL Header Component (DEPRECATED)
+ *
+ *  This program is covered under the terms of the ARES Software Copyright
+ *  License, Section 3 (ASCL-iii). It may be redistributed or used as the
+ *  basis of commercial, closed-source products so long as steps are taken
+ *  to ensure proper attribution as defined in the text of the license.
+ *  
+ *  To see the full text of the ASCL, type 'help license' on any standard
+ *  ARES distribution, or visit http://nanite-systems.com/ASCL for the
+ *  current version.
+ *
+ *  DISCLAIMER
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS
+ *  IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ *  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ *  PARTICULAR PURPOSE ARE DISCLAIMED.
+ *
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+ *  DAMAGES HOWEVER CAUSED ON ANY THEORY OF LIABILITY ARISING IN ANY WAY OUT
+ *  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ *  DAMAGE.
+ * 
+ * =========================================================================
+ *
+ */
+
+#ifndef _ARES_FS_H_
+#define _ARES_FS_H_
+
+/*
+	UNIFORM FILE ACCESS - OBSOLETE
+	
+	DO NOT USE - DEFUNCT IN ARES 0.4.4
+	
+	file handling via io (with fs as back end)
+	
+	see also file.h.lsl for a simple (but memory-intensive) wrapper to these calls
+*/
+
+#define FILE_PAGE_LENGTH 2048
+#define FILE_SIZE NOWHERE
+#define FILE_LINE_WIDTH 1024
+
+#define file_read(_pipe, _filename, _offset) e_call(C_IO, E_SIGNAL_DATA_REQUEST, (string)(_pipe) + " " + PROGRAM_NAME + " " + (_filename) + " " + (string)(_offset))
+#define file_open(_pipe, _filename) file_read(_pipe, _filename, NOWHERE);
+
+#define file_close(_pipe) e_call(C_IO, E_SIGNAL_DELETE_RULE, "[\"" + (string)(_pipe) + "\"]")
+
+// OTHER FILESYSTEM ACTIVITIES
+// get all filenames in a view:
+#define list_files(_rule) js2list(llLinksetDataRead("fs:"+_rule))
+
+// get all filenames (careful; this is a lot of data):
+#define list_all_files() jskeys(llLinksetDataRead("fs:root"))
+
+// trigger a filesystem refresh (no way of checking when this finishes):
+#define fs_refresh() invoke("fs refresh", avatar, NULL_KEY, avatar)
+
+#endif // _ARES_FS_H_

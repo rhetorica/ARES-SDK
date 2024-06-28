@@ -1,0 +1,309 @@
+/* =========================================================================
+ *
+ *           Nanite Systems Advanced Research Encapsulation System
+ *  
+ *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *  
+ * =========================================================================
+ *
+ *  Help Utility
+ *
+ *  This program is covered under the terms of the ARES Software Copyright
+ *  License, Section 2 (ASCL-ii). Although it appears in ARES as part of
+ *  commercial software, it may be used as the basis of derivative,
+ *  non-profit works that retain a compatible license. Derivative works of
+ *  ASCL-ii software must retain proper attribution in documentation and
+ *  source files as described in the terms of the ASCL. Furthermore, they
+ *  must be distributed free of charge and provided with complete, legible
+ *  source code included in the package.
+ *  
+ *  To see the full text of the ASCL, type 'help license' on any standard
+ *  ARES distribution, or visit http://nanite-systems.com/ASCL for the
+ *  current version.
+ *
+ *  DISCLAIMER
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS
+ *  IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ *  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ *  PARTICULAR PURPOSE ARE DISCLAIMED.
+ *
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+ *  DAMAGES HOWEVER CAUSED ON ANY THEORY OF LIABILITY ARISING IN ANY WAY OUT
+ *  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ *  DAMAGE.
+ * 
+ * =========================================================================
+ *
+ */
+
+#include <ARES/a>
+
+#define CLIENT_VERSION "1.1.1"
+#define CLIENT_VERSION_TAGS "release"
+
+// files being indexed:
+list files_to_index; // [filenames]
+string cifile;
+string cifile_short;
+integer cii; // current line
+integer cimax; // line limit
+key ciq;
+
+key index_user;
+key index_outs;
+
+do_index() {
+	if(count(files_to_index)) {
+		cifile = gets(files_to_index, 0);
+		cifile_short = delstring(cifile, -5, -1);
+		
+		files_to_index = delitem(files_to_index, 0);
+		cii = 0;
+		cimax = NOWHERE;
+		ciq = llGenerateKey();
+		
+		file_open(ciq, cifile);
+	} else {
+		task_end(index_outs);
+	}
+}
+
+// queue of requested pages to show:
+list pages_to_show; // [page, outs, user]
+string current_file;
+key current_outs;
+key current_user;
+key file_pipe;
+integer current_offset;
+integer file_size;
+integer storage_format;
+
+do_read() {
+	if(count(pages_to_show)) {
+		string entry = gets(pages_to_show, 0);
+		list help_files = llList2ListStrided(js2list(llLinksetDataRead("help")), 0, LAST, 2);
+		integer hi = 0;
+		integer himax = count(help_files);
+		
+		string clu;
+		while(hi < himax) {
+			current_file = gets(help_files, hi);
+			#ifdef DEBUG
+			echo("[help] Checking file " + current_file);
+			#endif
+			clu = getdbl("help", [current_file, entry]);
+			if(clu != JSON_INVALID)
+				jump got_it;
+			
+			++hi;
+		}
+		@got_it;
+		current_outs = getk(pages_to_show, 1);
+		current_user = getk(pages_to_show, 2);
+		
+		storage_format = (integer)getdbl("help", [current_file, "__format"]); // 1: line, 0: char
+		
+		pages_to_show = delrange(pages_to_show, 0, 2);
+		
+		if(clu == JSON_INVALID) {
+			print(current_outs, current_user, "No help entry: " + entry + ". Check http://support.nanite-systems.com/search or your spelling.");
+			task_end(current_outs);
+			do_read(); // oh no, recursion
+		} else {
+			file_size = NOWHERE;
+			current_offset = (integer)clu;
+			file_open(file_pipe = llGenerateKey(), current_file += ".info");
+		}
+	}
+}
+
+main(integer src, integer n, string m, key outs, key ins, key user) {
+	if(n == SIGNAL_NOTIFY) {
+		if(m == "help file") {
+			string buffer;
+			if(ins == ciq || ins == file_pipe) {
+				pipe_read(ins, buffer);
+				
+				if(ins == ciq) { // indexing files
+					if(cimax == NOWHERE) {
+						cimax = (integer)buffer;
+						if(cimax > 0) {
+							storage_format = (llOrd(buffer, strpos(buffer, " ") + 1) == 0x6C);
+								// 1: line, 0: other
+							setdbl("help", [cifile_short, "__format"], (string)storage_format);
+							 // start reading from beginning of file
+							file_read(ins, cifile, cii = 0);
+							#ifdef DEBUG
+								echo("[help] Reading file: " + cifile);
+							#endif
+						} else {
+							file_close(ins);
+							print(index_outs, index_user,
+								"Help file missing: " + cifile + ". Run 'help reindex' to clean up.");
+							do_index();
+						}
+					} else {
+						integer new_cii = cii + FILE_PAGE_LENGTH;
+					
+						list lines = splitnulls(buffer, "\n");
+						integer lmax = count(lines);
+						integer li = 0;
+						integer buffer_offset = 0;
+						while(li < lmax) {
+							string L = gets(lines, li);
+							integer line_len = strlen(L);
+							
+							if(substr(L, 0, 5) == "TOPIC ") {
+								integer entry_offset;
+								if(storage_format == 1) {
+									entry_offset = li * FILE_LINE_WIDTH + cii;
+								} else {
+									entry_offset = buffer_offset + cii + line_len;
+									if(li == lmax - 1) {
+										// do not count this line as it may be fragmentary
+										new_cii = buffer_offset + cii;
+										jump ignore_topic;
+									}
+								}
+								
+								setdbl(
+									"help",
+									[cifile_short, delstring(L, 0, 5)],
+									(string)(entry_offset)
+								);
+								#ifdef DEBUG
+									echo("[help] Found entry: " + L + " at " + (string)entry_offset);
+								#endif
+								
+							}
+							
+							@ignore_topic;
+							buffer_offset += line_len + 1;
+							++li;
+						}
+						
+						if(new_cii > cimax) {
+							file_close(ciq);
+							do_index();
+						} else {
+							file_read(ciq, cifile, cii += FILE_PAGE_LENGTH);
+						}
+					}
+				} else if(ins == file_pipe) { // reading page
+					if(file_size == NOWHERE) {
+						file_size = (integer)buffer;
+						if(file_size > 0) {
+							 // start reading from beginning of entry
+							file_read(ins, current_file, current_offset);
+						} else {
+							file_close(ins);
+							print(current_outs, current_user,
+								"Help file missing: " + current_file + ". Run 'help reindex' to clean up.");
+							task_end(current_outs);
+							do_read();
+						}
+					} else {
+						integer ti = strpos(buffer, "\nTOPIC ");
+						if(~ti) {
+							#ifdef DEBUG
+								echo("[help] stopping read; found TOPIC at " + (string)ti);
+							#endif
+							buffer = delstring(buffer, ti, LAST);
+							file_close(ins);
+							task_end(current_outs);
+							do_read();
+						} else if(substr(buffer, 0, 5) == "TOPIC ") {
+							#ifdef DEBUG
+								echo("[help] stopping read; found TOPIC at buffer start");
+							#endif
+							file_close(ins);
+							task_end(current_outs);
+							do_read();
+							return;
+							// TODO: ugly repetitive code above
+						} else if(current_offset + FILE_PAGE_LENGTH > file_size) {
+							#ifdef DEBUG
+								echo("[help] end of file");
+							#endif
+							file_close(ins);
+							task_end(current_outs);
+							do_read();
+						} else {
+							#ifdef DEBUG
+								echo("[help] pulling next page of " + current_file);
+							#endif
+							file_read(ins, current_file, current_offset += FILE_PAGE_LENGTH);
+						}
+						
+						print(current_outs, current_user, buffer);
+					}
+				}
+			}
+		}
+	} else if(n == SIGNAL_INVOKE) {
+		list argv = split(m, " ");
+		integer argc = count(argv);
+		if(argc == 1) {
+			argv += "main";
+		}
+		
+		string action = gets(argv, 1);
+		if(action == "index") {
+			string f = gets(argv, 2);
+			if(substr(f, -5, -1) != ".info")
+				f += ".info";
+			print(
+				index_outs = outs,
+				index_user = user,
+				"Indexing info file: " + f
+			);
+			task_begin(outs, "index");
+			files_to_index += f;
+			do_index();
+		} else if(action == "reindex") {
+			print(
+				index_outs = outs,
+				index_user = user,
+				"Re-indexing all known info files. This may take a while."
+			);
+			llLinksetDataDelete("help");
+			task_begin(outs, "index");
+			/*integer c = llGetInventoryNumber(INVENTORY_NOTECARD);
+			while(c--) {
+				string f = llGetInventoryName(INVENTORY_NOTECARD, c);
+				if(substr(f, -5, -1) == ".info") {
+					files_to_index += f;
+				}
+			}*/
+			files_to_index = js2list(llLinksetDataRead("fs:info"));
+			do_index();
+		} else if(action == "forget") {
+			string f = gets(argv, 2);
+			if(substr(f, -5, -1) == ".info")
+				f = delstring(f, -5, -1);
+				
+			if(getdbl("help", [f]) == JSON_INVALID) {
+				print(outs, user, "Info file not present: " + f + ".info");
+			} else {
+				deletedbl("help", [f]);
+				print(outs, user, "Removed info file " + f + ".info from help database.");
+			}
+		} else {
+			task_begin(outs, "read");
+			string p = concat(delitem(argv, 0), " ");
+			pages_to_show += [p, outs, user];
+			do_read();
+		}
+	} else if(n == SIGNAL_INIT) {
+		#ifdef DEBUG
+			echo("[" + PROGRAM_NAME + "] init event");
+		#endif
+	} else if(n == SIGNAL_UNKNOWN_SCRIPT) {
+		echo("[" + PROGRAM_NAME + "] failed to run '" + m + "' (kernel could not find the program specified)");
+	} else {
+		echo("[" + PROGRAM_NAME + "] unimplemented signal " + (string)n + ": " + m);
+	}
+}
+
+#include <ARES/program>

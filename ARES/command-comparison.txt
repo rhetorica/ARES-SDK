@@ -1,0 +1,48 @@
+ARES Command Cheat Sheet
+
+By default, ARES commands start with '@' when typed in local chat.
+
+However, '@' is not used when writing shell scripts. In this case, an '@' in an ARES script file indicates a label.
+
+
+Linux bash			Windows cmd.exe		ARES exec				ARES aliases
+------------------------------------------------------------------------------
+cat <file>			type <file>			type <file>
+ls <pattern>		dir <pattern>		fs match <pattern>		ls <pattern>
+ls					dir					fs
+shutdown -h now		shutdown /s /t 0	power system off		off
+echo <string>		echo <string>		echo <string>
+<var>=<string>		set <var>=<string>	set <var> <string>
+rm <file>			del <file>			fs remove <file>
+env					set					db env					env
+exit				goto :EOF			exit
+---					goto <label>		jump <label>
+---					:<label>			@<label>:
+
+
+File existence checks
+
+bash:		if -e <file>; then <command>; fi
+cmd.exe:	if exist <file> <command>
+ARES:		if exist <file> then <command>
+
+
+String comparison
+
+bash:		if [ <string1>==<string2> ]; then <command>; fi
+cmd.exe:	if <string1>==<string2> <command>
+ARES:		if <string1> is <string2> then <command>
+
+
+Storing a numeric expression in an environment variable
+
+bash:		let <var>=<math>
+cmd.exe:	set /a <var>=<math>
+ARES:		set <var>=<math>
+
+
+Notes
+
+ - bash is an ALGOL dialect; for ideological reasons it does not support goto
+ - The 'fs match <pattern>' facility in ARES is designed for creating file associations, not data science; it only supports a single "*" wildcard
+

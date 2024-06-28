@@ -1,0 +1,13 @@
+Known Version Strings
+
+8.0.4
+8.2.0
+8.2.11
+Companion/8.3.3
+Companion/8.3.11
+Companion/8.6.4
+Clockwork/8.6.3
+ATOS/12.1.0
+ARES/0.4.0
+OeM/4.0
+KOR/24.03.08

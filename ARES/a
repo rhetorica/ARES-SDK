@@ -1,0 +1,331 @@
+
+/* =========================================================================
+ *
+ *           Nanite Systems Advanced Research Encapsulation System
+ *  
+ *            Copyright (c) 2022–2023 Nanite Systems Corporation
+ *  
+ * =========================================================================
+ *
+ *  A.H.LSL Header Component
+ *
+ *  This program is covered under the terms of the ARES Software Copyright
+ *  License, Section 3 (ASCL-iii). It may be redistributed or used as the
+ *  basis of commercial, closed-source products so long as steps are taken
+ *  to ensure proper attribution as defined in the text of the license.
+ *  
+ *  To see the full text of the ASCL, type 'help license' on any standard
+ *  ARES distribution, or visit http://nanite-systems.com/ASCL for the
+ *  current version.
+ *
+ *  DISCLAIMER
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS
+ *  IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ *  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ *  PARTICULAR PURPOSE ARE DISCLAIMED.
+ *
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+ *  DAMAGES HOWEVER CAUSED ON ANY THEORY OF LIABILITY ARISING IN ANY WAY OUT
+ *  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ *  DAMAGE.
+ *
+ * =========================================================================
+ *
+ */
+
+#include <utils.lsl>
+#include <objects.lsl>
+
+// some programs (e.g. LSLisp) need this to determine the target platform:
+#define ARES
+
+// version that OS components will report:
+#define ARES_VERSION "0.5.0"
+#define ARES_VERSION_TAGS "beta 3"
+
+// copyright year for the OS:
+#define ARES_YEAR "2022-2024"
+
+// ring definitions (link numbers):
+#define R_KERNEL  1
+#define R_DAEMON  2
+#define R_PROGRAM 3
+// populated with llGetLinkKey():
+key KERNEL = NULL_KEY;
+key DAEMON = NULL_KEY;
+key PROGRAM = NULL_KEY;
+// populated with llGetOwner():
+key avatar = NULL_KEY;
+// populated with llGetScriptName():
+string PROGRAM_NAME = "program";
+
+// channel definitions
+#define C_UNASSIGNED   0x7a000000
+
+// the kernel takes messages via llMessageLinked using the system() API call
+// so it doesn't need a channel
+// #define C_KERNEL	   0x7a001000
+
+#define C_DAEMON_BASE  0x7a002000
+
+#define C_STATUS	   0x7a002001
+#define E_STATUS            "!\""
+#define C_BASEBAND	   0x7a002002
+#define E_BASEBAND	   		 "!#"
+#define C_IO 		   0x7a002003
+#define E_IO				 "!$"
+#define C_HARDWARE 	   0x7a002004
+#define E_HARDWARE 	   		 "!%"
+#define C_INTERFACE	   0x7a002005
+#define E_INTERFACE	   		 "!&"
+#define C_VARIATYPE	   0x7a002006
+#define E_VARIATYPE	   		 "!'"
+#define C_EFFECTOR     0x7a002007
+#define E_EFFECTOR			 "!("
+#define C_REPAIR	   0x7a002008
+#define E_REPAIR			 "!)"
+#define C_SCHEDULER	   0x7a002009
+#define E_SCHEDULER			 "!*"
+#define C_SEXUALITY	   0x7a00200a
+#define E_SEXUALITY			 "!+"
+#define C_WARRIOR	   0x7a00200b
+#define E_WARRIOR			 "!,"
+#define C_STORAGE      0x7a00200c
+#define E_STORAGE			 "!-"
+
+#define C_PROGRAM_BASE 0x7a003000
+
+#define C_LIBFS		   0x7a003ffd
+#define C_PROC		   0x7a003ffe
+
+#define FILESYSTEM_ADDRESS  0xffd
+#define DELEGATE_ADDRESS	0xffe
+
+#define INPUT_HANDLER "00000000-0000-0000-0000-000000000001"
+#define VOX_LISTENER "00000000-0000-0000-0000-000000000002"
+
+#define OUTPUT_WHISPER "00000000-0000-0000-0000-000000000010"
+#define OUTPUT_SAY "00000000-0000-0000-0000-000000000020"
+#define OUTPUT_SHOUT "00000000-0000-0000-0000-000000000100"
+#define OUTPUT_NULL NULL_KEY
+
+integer PROGRAM_NUMBER = 0;
+string E_PROGRAM_NUMBER = "!!";
+
+// signal number encoding (0-4095, 0x0000-0x0fff)
+#define ares_encode(_number) llChar( ((_number & 0x0fc0) >> 6) + 33 ) + llChar( (_number & 0x3f) + 33 )
+#define ares_decode(_code) (((llOrd(_code, 0) - 33) << 6) + (llOrd(_code, 1) - 33))
+
+// placeholder for procs with no known name (used in system messages):
+#define E_UNKNOWN "!!"
+
+/*
+  SIGNAL DEFINITIONS
+  
+  Signals are assigned spaces in the following format:
+  0x000 - 0x0ff: standard program interactions
+  0x100 - 0x1ff: daemon interactions
+  ...
+  0xf00 - 0xfff: kernel interactions
+  
+*/
+
+// 0x000-0x0ff: standard program interactions
+#define SIGNAL_INVOKE				0x000
+#define E_SIGNAL_INVOKE				"!!"
+// call from kernel to program:
+#define SIGNAL_EVENT				0x002
+#define E_SIGNAL_EVENT				"!#"
+// call from daemon to program (avoid at all costs):
+#define SIGNAL_SUMMON				0x003
+#define E_SIGNAL_SUMMON				"!$"
+// receipt for successful invoke:
+#define SIGNAL_DONE 				0x004
+#define E_SIGNAL_DONE				"!%"
+// bidirectional timer creation and trigger:
+#define SIGNAL_TIMER				0x005
+#define E_SIGNAL_TIMER				"!&"
+
+// 0x100-0x1ff: daemon interactions
+#define SIGNAL_DATA_REQUEST			0x100
+#define E_SIGNAL_DATA_REQUEST		"%!"
+#define SIGNAL_DATA_UNAVAILABLE		0x101
+#define E_SIGNAL_DATA_UNAVAILABLE	"%\""
+#define SIGNAL_DATA_VALUE			0x102
+#define E_SIGNAL_DATA_VALUE			"%#"
+#define SIGNAL_DATA_LIST			0x103
+#define E_SIGNAL_DATA_LIST			"%$"
+#define SIGNAL_DATA_SET				0x104
+#define E_SIGNAL_DATA_SET			"%%"
+#define SIGNAL_DATA_DELETE			0x105
+#define E_SIGNAL_DATA_DELETE		"%&"
+
+// call from program to daemon:
+#define SIGNAL_CALL					0x110
+#define E_SIGNAL_CALL				"%1"
+#define SIGNAL_CREATE_RULE			0x111
+#define E_SIGNAL_CREATE_RULE		"%2"
+#define SIGNAL_DELETE_RULE			0x112
+#define E_SIGNAL_DELETE_RULE		"%3"
+#define SIGNAL_NOTIFY				0x113
+#define E_SIGNAL_NOTIFY				"%4"
+#define SIGNAL_QUERY_RULES			0x114
+#define E_SIGNAL_QUERY_RULES		"%5"
+
+// messy commands to daemon-bound functions
+// that do not fit neatly into the design:
+#define SIGNAL_SECURITY				0x120
+#define E_SIGNAL_SECURITY			"%A"
+#define SIGNAL_VOX					0x121
+#define E_SIGNAL_VOX				"%B"
+#define SIGNAL_TELL					0x122
+#define E_SIGNAL_TELL				"%C"
+
+// pipe interactions for FLOW (stream-processing) programs:
+// (not implemented in this version)
+#define SIGNAL_STREAM_OPEN			0x130
+#define E_SIGNAL_STREAM_OPEN		"%Q"
+#define SIGNAL_STREAM_DATA			0x131
+#define E_SIGNAL_STREAM_DATA		"%R"
+#define SIGNAL_STREAM_CLOSED		0x132
+#define E_SIGNAL_STREAM_CLOSED		"%S"
+
+// 0xf00-0xfff: kernel interactions
+#define SIGNAL_SOLICIT_ADDRESS		0xf00
+#define SIGNAL_ASSIGN_ADDRESS		0xf01
+#define E_SIGNAL_ASSIGN_ADDRESS		"]\""
+#define SIGNAL_TERMINATE			0xf02
+#define E_SIGNAL_TERMINATE			"]#"
+#define SIGNAL_WAKE					0xf03
+#define E_SIGNAL_WAKE				"]$"
+#define SIGNAL_WOKE					0xf04
+#define E_SIGNAL_WOKE				"]%"
+#define SIGNAL_OVERVIEW				0xf05
+#define E_SIGNAL_OVERVIEW			"]&"
+#define SIGNAL_OVERVIEW_REPORT		0xf06
+#define E_SIGNAL_OVERVIEW_REPORT	"]'"
+#define SIGNAL_HOOK_EVENT			0xf07
+#define E_SIGNAL_HOOK_EVENT			"]("
+#define SIGNAL_UNHOOK_EVENT			0xf08
+#define E_SIGNAL_UNHOOK_EVENT		"])"
+#define SIGNAL_TERMINATED			0xf09
+#define E_SIGNAL_TERMINATED			"]*"
+#define SIGNAL_UNKNOWN_SCRIPT		0xf0a
+#define E_SIGNAL_UNKNOWN_SCRIPT		"]+"
+
+// these require callback numbers:
+#define SIGNAL_QUERY_MODULES		0xf0b
+#define E_SIGNAL_QUERY_MODULES		"],"
+#define SIGNAL_QUERY_HOOKS			0xf0c
+#define E_SIGNAL_QUERY_HOOKS		"]-"
+#define SIGNAL_QUERY_DAEMONS		0xf0d
+#define E_SIGNAL_QUERY_DAEMONS		"]."
+
+// parse the provided string as an input pipe:
+#define SIGNAL_MODULES_REPORT		0xf0e
+#define E_SIGNAL_MODULES_REPORT		"]/"
+#define SIGNAL_HOOKS_REPORT			0xf0f
+#define E_SIGNAL_HOOKS_REPORT		"]0"
+#define SIGNAL_DAEMONS_REPORT		0xf10
+#define E_SIGNAL_DAEMONS_REPORT		"]1"
+
+// from delegate or daemon to kernel:
+#define SIGNAL_TRIGGER_EVENT		0xf11
+#define E_SIGNAL_TRIGGER_EVENT		"]2"
+
+#define SIGNAL_DAEMON_ANNOUNCE		0xf12
+
+#define SIGNAL_MODE					0xf13
+#define E_SIGNAL_MODE				"]4"
+
+// program ready to be sent commands:
+#define SIGNAL_READY				0xf14
+#define E_SIGNAL_READY				"]5"
+
+// program was awoken but already awake:
+#define SIGNAL_BUSY					0xf15
+#define E_SIGNAL_BUSY				"]6"
+
+// stop program without resetting it:
+#define SIGNAL_SLEEP				0xf16
+#define E_SIGNAL_SLEEP				"]7"
+
+#define SIGNAL_RECHECK_MODULE		0xf17
+#define E_SIGNAL_RECHECK_MODULE		"]8"
+
+// special message for combat performance:
+#define SIGNAL_COLLISION			0xf18
+#define E_SIGNAL_COLLISION			"]9"
+
+#define SIGNAL_INVENTORY_DROP		0xf19
+#define E_SIGNAL_INVENTORY_DROP		"]:"
+
+// daemons can now call programs safely:
+#define SIGNAL_SYSTEM_READY			0xffc
+#define E_SIGNAL_SYSTEM_READY		"`]"
+
+#define SIGNAL_INIT					0xffd
+#define E_SIGNAL_INIT				"`^"
+
+// this requires a callback number:
+#define SIGNAL_DAEMON_RESET			0xffe
+#define E_SIGNAL_DAEMON_RESET       "`_"
+
+#define SIGNAL_KERNEL_RESET			0xfff
+#define E_SIGNAL_KERNEL_RESET       "``"
+
+/*
+  EVENT DEFINITIONS
+
+  Most events have no parameters.
+  
+  Exceptions are noted.
+*/
+
+// Touch events are for the ARES HUD only. They are sent in the format: 1 <id> <link> <face> <ST coordinates>
+#define EVENT_TOUCH					0x001
+
+// Teleport events ARE NOT sent when the system teleports to a new region.
+#define EVENT_TELEPORT				0x002
+
+// Generated by _fs after a refresh, whether or not any files actually changed
+#define EVENT_INVENTORY_CHANGE		0x003
+
+// 0x004 was EVENT_TIMER, which has been replaced by SIGNAL_TIMER for brevity
+
+// Device events specify the name and key of the device, e.g. 5 battery <id>
+// However, they may be sent with no parameters during a device probe.
+#define EVENT_NEW_DEVICE			0x005
+#define EVENT_REMOVE_DEVICE			0x006
+
+// Region change events are sent when the system crosses a region boundary OR teleports to a new region.
+#define EVENT_REGION_CHANGE			0x007
+
+// The on_rez event is generated by _proc when it resets and when the system is rezzed.
+#define EVENT_ON_REZ				0x008
+
+// The interface refresh event triggers whenever the whole UI needs to be repositioned, such as when the HUD subsystem is enabled, the unit is powered on, the _interface daemon is reset, or mouselook is entered or left.
+#define EVENT_INTERFACE				0x009
+
+// The rez_object event is generated by _proc when an object is rezzed. The object's key is passed as a parameter.
+#define EVENT_REZ_OBJECT			0x00a
+
+// The warning event triggers whenever a warning is issued by a daemon. This is meant only to be monitored by the _display program. Ideally this would be a notify message, but using an event hook fails gracefully if a warning is generated before _display is registered with the kernel. Specified as 11 <slot> <message>, e.g. "11 2 6" displays 'RADIATION DANGER' in slot 2; see interface.consts.h.lsl for list.
+#define EVENT_WARNING				0x00b
+
+/*
+  MODE DEFINITIONS
+
+  see ARES/program for details
+*/
+
+#define MODE_NORMAL					0x000
+#define MODE_THREADING				0x001
+#define MODE_NON_VOLATILE			0x002
+#define MODE_MASK_SLEEPLESS			0x003
+#define MODE_ACCEPT_DONE			0x004
+#define MODE_MASK_BATCH				0x006
+#define MODE_FLOW					0x008
+
+#include <ARES/api/api.h.lsl>

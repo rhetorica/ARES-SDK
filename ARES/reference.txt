@@ -1,0 +1,146 @@
+================================
+       ARES API REFERENCE       
+================================
+
+(work in progress)
+
+To send a message to a program:
+
+linked(R_KERNEL, SIGNAL_INVOKE, "!!" + ares_encode(PROGRAM_NUMBER) + params, "")
+
+Commands to the kernel itself have a similar format; see next paragraph.
+
+The "!!" is the destination PID field and will be auto-populated by the kernel. This part is absent in kernel commands.
+
+Note that SIGNAL_INVOKE has a particularly structured params format, discussed later.
+
+The program will receive this message through its listen() event on the channel (C_PROGRAM_BASE + PROGRAM_NUMBER), after being awoken by _delegate if necessary. The destination PID field will have been removed and replaced with an encoded signal message (e.g. "!#" for SIGNAL_EVENT).
+
+The program's main() will be called with main(SIGNAL_INVOKE, params, PROGRAM_NUMBER). The target pipe and program name must be extracted manually.
+
+
+To send a message to a daemon, call it directly:
+
+tell(DAEMON, C_IO, ares_encode(SIGNAL_DATA_REQUEST) + ares_encode(PROGRAM_NUMBER) + request)
+
+The Daemon will receive this as main(SIGNAL_DATA_REQUEST, request, PROGRAM_NUMBER)
+
+
+---------------------
+  SPECIFIC MESSAGES
+---------------------
+
+SIGNAL_INVOKE (program to program)
+	params: (string)target_pipe + " " + command_line
+	
+	In general, the first word of the command_line must match the filename of the source program. System programs are an exception (the leading underscore is removed.)
+	
+	The target_pipe is a UUID to which output messages should be sent through the IO daemon. In most cases the target_pipe is a user's key.
+
+SIGNAL_EVENT (kernel to program)
+	params: <event> <params>
+	
+	Sent when an event occurs that has been hooked by the program.
+
+SIGNAL_SUMMON (daemon to program)
+	params:
+
+SIGNAL_DATA_REQUEST (program to daemon)
+	params:
+
+SIGNAL_DATA_UNAVAILABLE (program to daemon)
+	params:
+
+SIGNAL_DATA_VALUE (program to daemon)
+	params:
+
+SIGNAL_DATA_LIST (program to daemon)
+	params:
+
+SIGNAL_DATA_SET (program to daemon)
+	params:
+
+SIGNAL_DATA_DELETE (program to daemon)
+	params:
+
+SIGNAL_CALL (program to daemon)
+	params: <callback> <program> <parameters>
+
+SIGNAL_CREATE_RULE (program to daemon)
+	params:
+
+SIGNAL_DELETE_RULE (program to daemon)
+	params:
+
+SIGNAL_NOTIFY (program to daemon, program to program)
+	params: <callback> <program> <parameters>
+	
+	Informs another process that a configuration change has been made, the substance of which is identified by a unique tag, usually the relevant LSD section and JSON key. The parameters are comparable to those used for an INVOKE or CALL message.
+	
+	This message can be routed through the kernel, in which case it will attempt to wake up any user program required. Used e.g. by the power system in this way.
+
+// 0xf00-0xfff: kernel interactions
+SIGNAL_SOLICIT_ADDRESS (program to kernel)
+	params: program name
+
+SIGNAL_ASSIGN_ADDRESS (kernel to program)
+	params: address + program name
+
+SIGNAL_TERMINATE (kernel to program or delegate)
+	params: program name
+
+SIGNAL_WAKE (kernel to program or delegate)
+	params: program name
+
+SIGNAL_WOKE (any to kernel)
+	params: program name
+
+SIGNAL_OVERVIEW  (kernel to delegate or status daemon)
+	params: none
+
+SIGNAL_OVERVIEW_REPORT (delegate or status daemon to kernel)
+	params: [[idle,programs],[running,programs]]
+
+SIGNAL_HOOK_EVENT (any to kernel)
+	params: <PID><event>
+
+SIGNAL_UNHOOK_EVENT (any to kernel)
+	params: <PID><event>
+
+SIGNAL_TERMINATED (any to kernel)
+	params: program name
+
+SIGNAL_UNKNOWN_SCRIPT (various)
+	params: program name
+
+SIGNAL_QUERY_MODULES (any to program)
+	params: none
+
+SIGNAL_QUERY_HOOKS (any to program)
+	params: none
+
+SIGNAL_QUERY_DAEMONS (any to program)
+	params: none
+
+SIGNAL_MODULES_REPORT (kernel to any)
+	params: kernel modules table
+
+SIGNAL_HOOKS_REPORT (kernel to any)
+	params: kernel hooks table
+
+SIGNAL_DAEMONS_REPORT (kernel to any)
+	params: kernel daemons table
+
+SIGNAL_EVENT_TRIGGER (any to kernel)
+	params: <event> <params>
+
+SIGNAL_INIT (program to self)
+	params: none
+
+SIGNAL_DAEMON_RESET (daemon to kernel)
+	params: program name
+
+SIGNAL_KERNEL_RESET (kernel to delegate or status daemon)
+	params: none
+
+	Triggers reset of all ring 3 programs and re-identification of all daemons. Only message normally passed to daemons via linked message rather than usual listener-based isolation.

@@ -1,0 +1,286 @@
+
+/* =========================================================================
+ *
+ *           Nanite Systems Advanced Research Encapsulation System
+ *  
+ *            Copyright (c) 2022–2023 Nanite Systems Corporation
+ *  
+ * =========================================================================
+ *
+ *  PROGRAM.H.LSL Footer Component
+ *
+ *  This program is covered under the terms of the ARES Software Copyright
+ *  License, Section 3 (ASCL-iii). It may be redistributed or used as the
+ *  basis of commercial, closed-source products so long as steps are taken
+ *  to ensure proper attribution as defined in the text of the license.
+ *  
+ *  To see the full text of the ASCL, type 'help license' on any standard
+ *  ARES distribution, or visit http://nanite-systems.com/ASCL for the
+ *  current version.
+ *
+ *  DISCLAIMER
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS
+ *  IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ *  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ *  PARTICULAR PURPOSE ARE DISCLAIMED.
+ *
+ *  IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+ *  DAMAGES HOWEVER CAUSED ON ANY THEORY OF LIABILITY ARISING IN ANY WAY OUT
+ *  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ *  DAMAGE.
+ *
+ * =========================================================================
+ *
+ */
+
+// #define DEBUG
+
+integer L_KERNEL;
+#ifdef DAEMON_LISTEN
+// used by fs
+integer L_DAEMON;
+#endif
+
+/*
+ * CHEAP JOB RECEIPTS
+ *
+ * set '_resolved = src;' whenever a task is complete
+ * set '_resolved = 0;' whenever a task is created
+ * make sure you store the src so you can use it later
+ */
+integer _resolved;
+key _input_s;
+key _output_s;
+key _user;
+
+/*
+ * CURRENT JOB MODE
+ * 
+ * (_mode & 1) if engaged in a thread (waiting for an event)
+ * (_mode & 2) if NON_VOLATILE (never quits)
+ * (_mode & 4) if DONE messages should be accepted
+ * (_mode & 8) if invokes should trigger stream messages (FLOW)
+ *                -- the FLOW API is not yet implemented --
+ */
+integer _mode
+#ifdef NON_VOLATILE
+	#ifdef FLOW
+		= 10
+	#else
+		= MODE_NON_VOLATILE
+	#endif
+#elif defined FLOW
+	= MODE_FLOW
+#endif
+;
+
+/*
+ * AUTOMATIC MEMORY MANAGEMENT
+ *
+ * For small, single-purpose utilities, 64 kb may be way too much memory.
+ * Adding #define AUTO_MEMORY_MANAGEMENT to your program will cause the script
+ * to attempt to minimize this impact.
+ *
+ * The additional constant AMM_GENEROUS will add 8 kb to the limit instead of
+ * 2 kb. This is quite a lot of memory to add, but makes sense for small
+ * programs that work with pipes.
+ *
+ */
+
+#ifdef DISHONEST_MEMORY_MANAGEMENT
+	#define AUTO_MEMORY_MANAGEMENT
+#endif
+
+#ifdef AUTO_MEMORY_MANAGEMENT
+	integer amm_profiling;
+#endif
+
+default {
+	// should NOT be used in user applications
+	// (required for _proc and _fs)
+	#ifdef EXT_EVENT_HANDLER
+		#include EXT_EVENT_HANDLER
+	#endif
+	
+	#ifndef OVERRIDE_STATE_ENTRY
+	state_entry() {
+		#ifdef AUTO_MEMORY_MANAGEMENT
+			llScriptProfiler(amm_profiling = PROFILE_SCRIPT_MEMORY);
+		#endif
+		KERNEL = llGetLinkKey(R_KERNEL);
+		DAEMON = llGetLinkKey(R_DAEMON);
+		PROGRAM = llGetLinkKey(R_PROGRAM);
+		
+		PROGRAM_NAME = llGetScriptName();
+		avatar = llGetOwner();
+		
+		L_KERNEL = llListen(C_UNASSIGNED, "", KERNEL, "");
+		
+		linked(R_KERNEL, SIGNAL_SOLICIT_ADDRESS, PROGRAM_NAME + "\n" + CLIENT_VERSION + " " + CLIENT_VERSION_TAGS, "");
+		
+		#ifdef DEBUG
+			echo(PROGRAM_NAME + " compiled " + __DATE__ + " in debug mode; " + (string)llGetUsedMemory() + " bytes used.");
+		#endif
+	}
+	#endif
+	
+	#ifndef OVERRIDE_ON_REZ
+		#ifdef NON_VOLATILE
+		on_rez(integer n) {
+			KERNEL = llGetLinkKey(R_KERNEL);
+			DAEMON = llGetLinkKey(R_DAEMON);
+			PROGRAM = llGetLinkKey(R_PROGRAM);
+			
+			PROGRAM_NAME = llGetScriptName();
+			avatar = llGetOwner();
+			
+			#ifdef DAEMON_LISTEN
+			llListenRemove(L_DAEMON);
+			#endif
+			llListenRemove(L_KERNEL);
+			L_KERNEL = llListen(C_UNASSIGNED, "", KERNEL, "");
+			PROGRAM_NUMBER = 0;
+			E_PROGRAM_NUMBER = "";
+			linked(R_KERNEL, SIGNAL_SOLICIT_ADDRESS, PROGRAM_NAME + "\n" + ARES_VERSION + " " + ARES_VERSION_TAGS, "");
+			
+			#ifdef DEBUG
+				echo("[" + PROGRAM_NAME + "] waiting for PID");
+			#endif
+		}
+		#else
+		on_rez(integer n) {
+			llResetScript();
+		}
+		#endif
+	#endif
+	
+	#ifndef OVERRIDE_LISTEN
+	listen(integer c, string source_name, key id, string m) {
+		integer n = ares_decode(m);
+		integer s = (
+			((id == KERNEL) * R_KERNEL)
+		  | ((id == DAEMON) * R_DAEMON)
+		  | ((id == PROGRAM) * R_PROGRAM)
+		);
+		#ifndef NEVER_UNASSIGNED
+		if(c == C_UNASSIGNED) {
+			if(n == SIGNAL_ASSIGN_ADDRESS) {
+				string expected_program_name = strdelete(m, 0, 3);
+				if(expected_program_name == PROGRAM_NAME) {
+					#ifdef DAEMON_LISTEN
+					llListenRemove(L_DAEMON);
+					#endif
+					llListenRemove(L_KERNEL);
+					
+					E_PROGRAM_NUMBER = substr(m, 2, 3);
+					PROGRAM_NUMBER = ares_decode(E_PROGRAM_NUMBER);
+					
+					integer C = C_PROGRAM_BASE + PROGRAM_NUMBER;
+					
+					#ifdef DAEMON_LISTEN
+					L_DAEMON = llListen(C, "", DAEMON, "");
+					#endif
+					L_KERNEL = llListen(C, "", KERNEL, "");
+					
+					#ifdef DEBUG
+						echo(PROGRAM_NAME + " registered with kernel as PID " + (string)PROGRAM_NUMBER);
+					#endif
+					
+					set_mode(_mode);
+					
+					main(_resolved = 0, SIGNAL_INIT, "", NULL_KEY, NULL_KEY, NULL_KEY);
+					
+					#ifndef OVERRIDE_READY
+						system(SIGNAL_READY, PROGRAM_NAME);
+					#endif
+				}
+			}
+		} else
+		#endif // NEVER_UNASSIGNED
+		
+		#ifdef EXT_COM_HANDLER
+			#include EXT_COM_HANDLER
+			else
+		#endif
+		{
+			#ifdef DEBUG
+			// echo(llGetScriptName() + " incoming message: " + m);
+			#endif
+			
+			#ifdef DISHONEST_MEMORY_MANAGEMENT
+				llSetMemoryLimit(0x10000);
+				llScriptProfiler(amm_profiling = PROFILE_SCRIPT_MEMORY);
+			#endif
+			
+			_input_s = NULL_KEY;
+			_output_s = NULL_KEY;
+			string remainder = strdelete(m, 0, 1);
+			if(n == SIGNAL_INVOKE || n == SIGNAL_NOTIFY) {
+				_output_s = substr(remainder, 2, 37);
+				_input_s = substr(remainder, 39, 74);
+				_user = substr(remainder, 76, 111);
+				main(_resolved = ares_decode(remainder), n, strdelete(remainder, 0, 112), _output_s, _input_s, _user);
+				
+				#ifdef AUTO_MEMORY_MANAGEMENT
+					if(amm_profiling) {
+						llScriptProfiler(amm_profiling = PROFILE_NONE);
+						integer estimate = llGetSPMaxMemory();
+						#ifndef AMM_GENEROUS
+						if(estimate < 0xe000) {
+							estimate += 0x7ff;
+							llSetMemoryLimit(estimate);
+							#ifdef DEBUG
+								echo("[" + PROGRAM_NAME + "] memory needs estimated at " + (string)estimate + " bytes");
+							#endif
+						}
+						#else
+						if(estimate < 0xd000) {
+							estimate += 0x1fff;
+							llSetMemoryLimit(estimate);
+							#ifdef DEBUG
+								echo("[" + PROGRAM_NAME + "] memory needs estimated at " + (string)estimate + " bytes");
+							#endif
+						}
+						#endif
+						#ifdef DEBUG
+							else {
+								echo(PROGRAM_NAME + " memory usage is very high; automatic memory management should be disabled");
+							}
+						#endif
+					}
+				#endif
+			}
+			#ifdef EXT_MSG_HANDLER
+				#include EXT_MSG_HANDLER
+			#endif
+			else {
+				main(_resolved = 0, n, remainder, NULL_KEY, NULL_KEY, NULL_KEY);
+			}
+			
+			#ifndef NON_VOLATILE
+			/*
+				PROBLEM: unlike linked messages, listeners can accumulate requests
+				while the program is hibernating, causing it to sleep while there
+				are still messages in the queue. The kernel solves this by keeping
+				a queue of all tasks yet to be executed, and by replaying the last
+				task if the program has apparently restarted (i.e., if it solicits
+				an address.)
+			*/
+			
+			if(_resolved && getjs(tasks_queue, [(string)_input_s]) == JSON_INVALID)
+				pipe_close_volatile([_input_s]);
+			
+			if(!task_count()) {
+				#ifdef DEBUG
+				echo("[" + PROGRAM_NAME + "] finished " + (string)n + ": " + remainder);
+				#endif
+				exitc(_input_s); // also performs resolve(_resolved)
+			} else {
+				resolvec(_resolved, _input_s);
+			}
+			#endif
+		}
+	}
+	#endif
+}

@@ -1,0 +1,896 @@
+key E = "00000000-0000-0000-0000-000000000000";
+key gC = "00000000-0000-0000-0000-000000000000";
+key K = "00000000-0000-0000-0000-000000000000";
+string LslUserScript = "program";
+integer g_;
+string H = "!!";
+
+string A(key llJsonValueType)
+{
+    string loc_spipe = "p:" + (string)llJsonValueType;
+    string loc_buffer = llLinksetDataRead(loc_spipe);
+    integer loc_eor = llSubStringIndex(loc_buffer, "");
+    if (~loc_eor)
+    {
+        if (loc_eor ^ ~-llStringLength(loc_buffer))
+            llLinksetDataWrite(loc_spipe, llDeleteSubString(loc_buffer, 0, loc_eor));
+        else
+            llLinksetDataDelete(loc_spipe);
+        loc_buffer = llDeleteSubString(loc_buffer, loc_eor, ((integer)-1));
+    }
+    else
+    {
+        llLinksetDataDelete(loc_spipe);
+    }
+    return loc_buffer;
+}
+
+string System = "{}";
+list UThreadStackFrame;
+list gB;
+list gA;
+key D;
+key I;
+key L;
+
+list C(list llJsonValueType)
+{
+    string loc_prog;
+    list loc_ix;
+    integer loc_parent;
+    string loc_local_vars;
+    integer loc_return_mode;
+    integer loc_last_symbol;
+    {
+        string loc_frame = llList2String(llJsonValueType, ((integer)-1));
+        llJsonValueType = llDeleteSubList(llJsonValueType, ((integer)-1), ((integer)-1));
+        loc_prog = llJsonGetValue(loc_frame, (list)"c");
+        loc_ix = llJson2List(llJsonGetValue(loc_frame, (list)"i"));
+        loc_parent = (integer)llJsonGetValue(loc_frame, (list)"p");
+        loc_local_vars = llJsonGetValue(loc_frame, (list)"v");
+        loc_return_mode = (integer)llJsonGetValue(loc_frame, (list)"r");
+        loc_last_symbol = (integer)llJsonGetValue(loc_frame, (list)"sp");
+    }
+    if (D)
+    {
+        D = "";
+    }
+    if (loc_prog == "")
+        return llJsonValueType;
+    integer loc_descending;
+    integer loc_backtrack;
+    if (loc_ix == [])
+    {
+        loc_ix = (list)((integer)-1);
+        loc_descending = 1;
+    }
+    while (1)
+    {
+        @J_autoGen00001;
+        loc_ix = llListReplaceList(loc_ix, (list)(-~llList2Integer(loc_ix, ((integer)-1))), ((integer)-1), ((integer)-1));
+        if (llJsonValueType(loc_prog, loc_ix) == "﷐")
+        {
+            if (!~-(loc_ix != []))
+            {
+                if (~loc_parent)
+                {
+                    integer loc_previous_return_mode = loc_return_mode;
+                    string loc_frame = llList2String(llJsonValueType, loc_parent);
+                    if (!(llGetSubString(loc_frame, 0, 0) == "{"))
+                    {
+                        llOwnerSay(">> No frame at " + (string)loc_parent + " in: " + llList2Json("﷒", llJsonValueType));
+                        return [];
+                    }
+                    llJsonValueType = llDeleteSubList(llJsonValueType, loc_parent, loc_parent);
+                    loc_prog = llJsonGetValue(loc_frame, (list)"c");
+                    loc_ix = llJson2List(llJsonGetValue(loc_frame, (list)"i"));
+                    loc_parent = (integer)llJsonGetValue(loc_frame, (list)"p");
+                    loc_local_vars = llJsonGetValue(loc_frame, (list)"v");
+                    loc_return_mode = (integer)llJsonGetValue(loc_frame, (list)"r");
+                    loc_last_symbol = (integer)llJsonGetValue(loc_frame, (list)"sp");
+                    string loc_structure = llJsonGetValue(loc_prog, loc_ix);
+                    list loc_step_again = loc_ix;
+                    if (~-loc_previous_return_mode)
+                    {
+                        if (loc_previous_return_mode == 2)
+                        {
+                            llJsonValueType = llJsonValueType + loc_frame;
+                            loc_prog = "[" + llJsonGetValue(loc_prog, llListReplaceList(loc_step_again, (list)1, ((integer)-1), ((integer)-1))) + "]";
+                            loc_return_mode = 1;
+                            loc_local_vars = "{}";
+                            loc_parent = ~-(llJsonValueType != []);
+                            loc_ix = (list)((integer)-1);
+                            loc_last_symbol = ((integer)-1);
+                            loc_descending = 1;
+                        }
+                    }
+                    else
+                    {
+                        integer loc_retval = (integer)llList2String(llJsonValueType, ((integer)-1));
+                        llJsonValueType = llDeleteSubList(llJsonValueType, ((integer)-1), ((integer)-1));
+                        loc_ix = llDeleteSubList(loc_ix, ((integer)-1), ((integer)-1));
+                        if (loc_structure == "if")
+                        {
+                            string loc_next_frame = llJsonSetValue(loc_frame, (list)"i", llList2Json("﷒", loc_ix));
+                            list loc_subix = loc_ix;
+                            if (loc_retval)
+                            {
+                                loc_subix = loc_subix + 2;
+                            }
+                            else if (llJsonValueType(loc_prog, loc_ix + 3) == "﷒")
+                            {
+                                loc_subix = loc_subix + 3;
+                            }
+                            else
+                            {
+                                jump J_autoGen00001;
+                            }
+                            loc_prog = "[" + llJsonGetValue(loc_prog, loc_subix) + "]";
+                            llJsonValueType = llJsonValueType + loc_next_frame;
+                            loc_return_mode = 0;
+                        }
+                        else if (loc_structure == "while")
+                        {
+                            if (loc_retval)
+                            {
+                                llJsonValueType = llJsonValueType + loc_frame;
+                                loc_prog = "[" + llJsonGetValue(loc_prog, loc_ix + 2) + "]";
+                                loc_descending = 1;
+                                loc_return_mode = 2;
+                            }
+                            else
+                            {
+                                jump J_autoGen00001;
+                            }
+                        }
+                        loc_local_vars = "{}";
+                        loc_parent = ~-(llJsonValueType != []);
+                        loc_last_symbol = ((integer)-1);
+                        loc_ix = (list)((integer)-1);
+                    }
+                    jump J_autoGen00001;
+                }
+                else
+                {
+                    return llJsonValueType;
+                }
+            }
+            loc_backtrack = 1;
+            loc_ix = llDeleteSubList(loc_ix, ((integer)-1), ((integer)-1));
+        }
+        else
+            while (llJsonValueType(loc_prog, loc_ix) == "﷒")
+            {
+                loc_ix = loc_ix + 0;
+                loc_descending = 1;
+            }
+        string loc_type = llJsonValueType(loc_prog, loc_ix);
+        if (loc_type == "﷓")
+        {
+            llJsonValueType = llJsonValueType + (float)llJsonGetValue(loc_prog, loc_ix);
+        }
+        else if (loc_descending)
+        {
+            string loc_verb = llJsonGetValue(loc_prog, loc_ix);
+            if (loc_verb == "if" | loc_verb == "while")
+            {
+                llJsonValueType = llJsonValueType + ("{\"c\":" + loc_prog + ",\"i\":" + llList2Json("﷒", loc_ix) + ",\"sp\":" + (string)loc_last_symbol + ",\"p\":" + (string)loc_parent + ",\"v\":" + loc_local_vars + ",\"r\":" + (string)loc_return_mode + ",\"t\":0}");
+                loc_prog = "[" + llJsonGetValue(loc_prog, llDeleteSubList(loc_ix, ((integer)-1), ((integer)-1)) + 1) + "]";
+                loc_return_mode = 1;
+                loc_local_vars = "{}";
+                loc_parent = ~-(llJsonValueType != []);
+                loc_ix = (list)((integer)-1);
+                loc_last_symbol = ((integer)-1);
+                loc_descending = 1;
+                jump J_autoGen00001;
+            }
+            else if (loc_verb == "lambda")
+            {
+                loc_ix = llDeleteSubList(loc_ix, ((integer)-1), ((integer)-1));
+                string loc_arglist = llDumpList2String(llJson2List(llJsonGetValue(loc_prog, loc_ix + 1)), " ");
+                string loc_code = llJsonGetValue(loc_prog, loc_ix + 2);
+                loc_descending = loc_backtrack = 0;
+                llJsonValueType = llJsonValueType + ("{\"c\":" + loc_code + ",\"t\":2,\"a\":\"" + loc_arglist + "\"}");
+                jump J_autoGen00001;
+            }
+            else
+            {
+                llJsonValueType = llJsonValueType + ("{\"s\":\"" + loc_verb + "\"" + ",\"t\":1,\"sp\":" + (string)loc_last_symbol + "}");
+                loc_last_symbol = ~-(llJsonValueType != []);
+            }
+        }
+        else if (loc_type == "﷔")
+        {
+            string loc_s = llJsonGetValue(loc_prog, loc_ix);
+            if (loc_s == "\\\"\\\"")
+            {
+                llJsonValueType = llJsonValueType + "";
+            }
+            else if (llGetSubString(loc_s, 0, 1) == "\\\"")
+            {
+                llJsonValueType = llJsonValueType + llGetSubString(loc_s, 2, ((integer)-3));
+            }
+            else if (llGetSubString(loc_s, 0, 0) == "$")
+            {
+                string loc_name = llDeleteSubString(loc_s, 0, 0);
+                string loc_local_type = llJsonValueType(loc_local_vars, (list)loc_name);
+                integer loc_temp_parent = loc_parent;
+                string loc_value;
+                if (loc_local_type == "﷐")
+                    while (loc_local_type == "﷐")
+                    {
+                        if (~loc_temp_parent)
+                        {
+                            string loc_fr = llList2String(llJsonValueType, loc_temp_parent);
+                            loc_local_type = llJsonValueType(loc_fr, (list)"v" + loc_name);
+                            loc_value = llJsonGetValue(loc_fr, (list)"v" + loc_name);
+                            loc_temp_parent = (integer)llJsonGetValue(loc_fr, (list)"p");
+                        }
+                        else
+                        {
+                            integer loc_si = llListFindList(UThreadStackFrame, (list)loc_name);
+                            if (~loc_si)
+                            {
+                                integer loc_global_type = llGetListEntryType(gB, loc_si);
+                                if (loc_global_type ^ 2)
+                                    if (~-loc_global_type)
+                                        llJsonValueType = llJsonValueType + llList2String(gB, loc_si);
+                                    else
+                                        llJsonValueType = llJsonValueType + llList2Integer(gB, loc_si);
+                                else
+                                    llJsonValueType = llJsonValueType + llList2Float(gB, loc_si);
+                                jump J_autoGen00001;
+                            }
+                            else
+                            {
+                                llOwnerSay(">> uninitialized variable: " + loc_s);
+                                return [];
+                            }
+                        }
+                    }
+                else
+                {
+                    loc_value = llJsonGetValue(loc_local_vars, (list)loc_name);
+                }
+                if (loc_local_type == "﷓")
+                {
+                    if (llFabs((float)loc_value + -(float)((integer)(0.5 + (float)loc_value))) < 7.6293945e-06)
+                        llJsonValueType = llJsonValueType + (integer)loc_value;
+                    else
+                        llJsonValueType = llJsonValueType + (float)loc_value;
+                }
+                else
+                {
+                    llJsonValueType = llJsonValueType + loc_value;
+                }
+            }
+            else
+            {
+                llJsonValueType = llJsonValueType + loc_s;
+            }
+        }
+        else if (loc_backtrack)
+        {
+            string loc_verbf = llList2String(llJsonValueType, loc_last_symbol);
+            string loc_verb = llJsonGetValue(loc_verbf, (list)"s");
+            if (loc_verb == "")
+            {
+                loc_last_symbol = (integer)llJsonGetValue(loc_verbf, (list)"sp");
+                loc_backtrack = loc_descending = 0;
+                jump J_autoGen00001;
+            }
+            integer loc_c;
+            list loc_params;
+            {
+                integer loc_scount = (llJsonValueType != []) + -loc_last_symbol;
+                loc_c = ~-loc_scount;
+                if (loc_c)
+                    loc_params = llList2List(llJsonValueType, -~loc_last_symbol, ((integer)-1));
+            }
+            llJsonValueType = llDeleteSubList(llJsonValueType, loc_last_symbol, ((integer)-1));
+            loc_last_symbol = (integer)llJsonGetValue(loc_verbf, (list)"sp");
+            if (loc_verb == "list")
+            {
+                llJsonValueType = llJsonValueType + llList2Json("﷒", loc_params);
+            }
+            else if (loc_verb == "print")
+            {
+                {
+                    llLinksetDataWrite("p:" + (string)L, llLinksetDataRead("p:" + (string)L) + (string)loc_params + "");
+                    llRegionSayTo(gC, 2046828547, "%1" + H + (string)L + " " + (string)I);
+                }
+            }
+            else if (loc_verb == "global")
+            {
+                string loc_name = llList2String(loc_params, 0);
+                string loc_data;
+                if (2 < loc_c)
+                    loc_data = llList2Json("﷒", llList2List(loc_params, 1, ((integer)-1)));
+                else if (loc_c == 2)
+                    loc_data = llList2String(loc_params, 1);
+                integer loc_si = llListFindList(UThreadStackFrame, (list)loc_name);
+                if (~loc_si)
+                {
+                    gB = llListReplaceList(gB, (list)loc_data, loc_si, loc_si);
+                }
+                else
+                {
+                    UThreadStackFrame = UThreadStackFrame + loc_name;
+                    gB = gB + loc_data;
+                }
+            }
+            else if (loc_verb == "set")
+            {
+                if (loc_c < 2)
+                {
+                    llOwnerSay(">> unary set.");
+                    return [];
+                }
+                string loc_name = llList2String(loc_params, 0);
+                list loc_data = llList2List(loc_params, 1, ((integer)-1));
+                string loc_local_type = llJsonValueType(loc_local_vars, (list)loc_name);
+                integer loc_old_parent = ((integer)-1);
+                integer loc_temp_parent = loc_parent;
+                string loc_fr;
+                while (loc_local_type == "﷐")
+                {
+                    if (~loc_temp_parent)
+                    {
+                        loc_fr = llList2String(llJsonValueType, loc_temp_parent);
+                        loc_local_type = llJsonValueType(loc_fr, (list)"v" + loc_name);
+                        loc_old_parent = loc_temp_parent;
+                        loc_temp_parent = (integer)llJsonGetValue(loc_fr, (list)"p");
+                    }
+                    else
+                    {
+                        integer loc_si = llListFindList(UThreadStackFrame, (list)loc_name);
+                        if (~loc_si)
+                        {
+                            gB = llListReplaceList(gB, loc_data, loc_si, loc_si);
+                        }
+                        else
+                        {
+                            loc_local_vars = llJsonSetValue(loc_local_vars, (list)loc_name, (string)loc_data);
+                        }
+                        jump J_autoGen00002;
+                    }
+                }
+                if (~loc_old_parent)
+                    llJsonValueType = llListReplaceList(llJsonValueType, (list)llJsonSetValue(loc_fr, (list)"v" + loc_name, (string)loc_data), loc_old_parent, loc_old_parent);
+                else
+                    loc_local_vars = llJsonSetValue(loc_local_vars, (list)loc_name, (string)loc_data);
+                @J_autoGen00002;
+            }
+            else if (loc_verb == "+")
+            {
+                float loc_out = 0;
+                while (loc_c--)
+                    loc_out = loc_out + llList2Float(loc_params, loc_c);
+                llJsonValueType = llJsonValueType + loc_out;
+            }
+            else if (loc_verb == "*")
+            {
+                float loc_out = 1;
+                while (loc_c--)
+                    loc_out = loc_out * llList2Float(loc_params, loc_c);
+                llJsonValueType = llJsonValueType + loc_out;
+            }
+            else if (loc_verb == "==")
+            {
+                if (llGetListEntryType(loc_params, 0) ^ 3)
+                    if (~-llGetListEntryType(loc_params, 0))
+                        llJsonValueType = llJsonValueType + (llList2Float(loc_params, 0) == llList2Float(loc_params, 1));
+                    else
+                        llJsonValueType = llJsonValueType + (llList2Integer(loc_params, 0) == llList2Integer(loc_params, 1));
+                else
+                    llJsonValueType = llJsonValueType + (llList2String(loc_params, 0) == llList2String(loc_params, 1));
+            }
+            else if (loc_verb == "!=")
+            {
+                if (llGetListEntryType(loc_params, 0) ^ 3)
+                    if (~-llGetListEntryType(loc_params, 0))
+                        llJsonValueType = llJsonValueType + !(llList2Float(loc_params, 0) == llList2Float(loc_params, 1));
+                    else
+                        llJsonValueType = llJsonValueType + (llList2Integer(loc_params, 0) ^ llList2Integer(loc_params, 1));
+                else
+                    llJsonValueType = llJsonValueType + !(llList2String(loc_params, 0) == llList2String(loc_params, 1));
+            }
+            else if (loc_verb == "<")
+            {
+                llJsonValueType = llJsonValueType + (llList2Float(loc_params, 0) < llList2Float(loc_params, 1));
+            }
+            else if (loc_verb == ">")
+            {
+                llJsonValueType = llJsonValueType + (llList2Float(loc_params, 1) < llList2Float(loc_params, 0));
+            }
+            else if (loc_verb == "<=")
+            {
+                llJsonValueType = llJsonValueType + !(llList2Float(loc_params, 1) < llList2Float(loc_params, 0));
+            }
+            else if (loc_verb == ">=")
+            {
+                llJsonValueType = llJsonValueType + !(llList2Float(loc_params, 0) < llList2Float(loc_params, 1));
+            }
+            else if (loc_verb == "and")
+            {
+                integer loc_out = 1;
+                while (loc_c--)
+                    loc_out = loc_out & llList2Integer(loc_params, loc_c);
+                llJsonValueType = llJsonValueType + loc_out;
+            }
+            else if (loc_verb == "or")
+            {
+                integer loc_out;
+                while (loc_c--)
+                    loc_out = loc_out | llList2Integer(loc_params, loc_c);
+                llJsonValueType = llJsonValueType + loc_out;
+            }
+            else if (loc_verb == "not" | loc_verb == "!")
+            {
+                llJsonValueType = llJsonValueType + !llList2Integer(loc_params, 0);
+            }
+            else if (loc_verb == "-")
+            {
+                if (1 < loc_c)
+                {
+                    float loc_out = llList2Float(loc_params, 0);
+                    --loc_c;
+                    while (loc_c--)
+                    {
+                        loc_out = loc_out + -llList2Float(loc_params, -~loc_c);
+                    }
+                    llJsonValueType = llJsonValueType + loc_out;
+                }
+                else
+                {
+                    llJsonValueType = llJsonValueType + -llList2Float(loc_params, 0);
+                }
+            }
+            else if (loc_verb == "/")
+            {
+                if (1 < loc_c)
+                {
+                    float loc_out = llList2Float(loc_params, 0);
+                    --loc_c;
+                    while (loc_c--)
+                    {
+                        float loc_newv = llList2Float(loc_params, -~loc_c);
+                        if (loc_newv == 0)
+                        {
+                            llOwnerSay(">> Division by zero.");
+                            return [];
+                        }
+                        else
+                            loc_out = loc_out / loc_newv;
+                    }
+                    llJsonValueType = llJsonValueType + loc_out;
+                }
+                else
+                {
+                    float loc_out = llList2Float(loc_params, 0);
+                    if (loc_out == 0)
+                    {
+                        llOwnerSay(">> Division by zero.");
+                        return [];
+                    }
+                    else
+                        llJsonValueType = llJsonValueType + ((float)1) / loc_out;
+                }
+            }
+            else if (loc_verb == "apply")
+            {
+                llJsonValueType = llJsonValueType + ("{\"c\":" + loc_prog + ",\"i\":" + llList2Json("﷒", loc_ix) + ",\"sp\":" + (string)loc_last_symbol + ",\"p\":" + (string)loc_parent + ",\"v\":" + loc_local_vars + ",\"r\":" + (string)loc_return_mode + ",\"t\":0}");
+                loc_local_vars = "{}";
+                loc_ix = (list)((integer)-1);
+                loc_parent = ~-(llJsonValueType != []);
+                {
+                    string loc_func = llList2String(loc_params, 0);
+                    list loc_arg_names = llParseString2List(llJsonGetValue(loc_func, (list)"a"), (list)" ", []);
+                    integer loc_an = loc_arg_names != [];
+                    while (loc_an--)
+                    {
+                        loc_local_vars = llJsonSetValue(loc_local_vars, (list)llList2String(loc_arg_names, loc_an), llList2String(loc_params, -~loc_an));
+                    }
+                    loc_prog = "[" + llJsonGetValue(loc_func, (list)"c") + "]";
+                }
+                loc_descending = loc_backtrack = 0;
+                jump J_autoGen00001;
+            }
+            else if (loc_verb == "concat")
+            {
+                llJsonValueType = llJsonValueType + llDumpList2String(llJson2List(llList2String(loc_params, 1)), llList2String(loc_params, 0));
+            }
+            else if (loc_verb == "split")
+            {
+                llJsonValueType = llJsonValueType + llList2Json("﷒", llParseString2List(llList2String(loc_params, 1), (list)llList2String(loc_params, 0), []));
+            }
+            else if (loc_verb == "get")
+            {
+                llJsonValueType = llJsonValueType + llJsonGetValue(llList2String(loc_params, 0), llJson2List(llList2String(loc_params, 1)));
+            }
+            else if (loc_verb == "index")
+            {
+                llJsonValueType = llJsonValueType + llListFindList(llJson2List(llList2String(loc_params, 0)), (list)llList2String(loc_params, 1));
+            }
+            else if (loc_verb == "count")
+            {
+                llJsonValueType = llJsonValueType + (llJson2List(llList2String(loc_params, 0)) != []);
+            }
+            else if (loc_verb == "put")
+            {
+                llJsonValueType = llJsonValueType + llJsonSetValue(llList2String(loc_params, 0), llJson2List(llList2String(loc_params, 1)), llList2String(loc_params, 2));
+            }
+            else if (loc_verb == "char")
+            {
+                integer loc_p = llList2Integer(loc_params, 1);
+                llJsonValueType = llJsonValueType + llGetSubString(llList2String(loc_params, 0), loc_p, loc_p);
+            }
+            else if (loc_verb == "substr")
+            {
+                llJsonValueType = llJsonValueType + llGetSubString(llList2String(loc_params, 0), llList2Integer(loc_params, 1), llList2Integer(loc_params, 2));
+            }
+            else if (loc_verb == "strpos")
+            {
+                llJsonValueType = llJsonValueType + llSubStringIndex(llList2String(loc_params, 0), llList2String(loc_params, 1));
+            }
+            else if (loc_verb == "rand")
+            {
+                llJsonValueType = llJsonValueType + llFrand(1);
+            }
+            else if (loc_verb == "int")
+            {
+                llJsonValueType = llJsonValueType + (integer)llList2String(loc_params, 0);
+            }
+            else if (loc_verb == "getd")
+            {
+                llJsonValueType = llJsonValueType + llJsonGetValue(llLinksetDataRead(llList2String(loc_params, 0)), llParseStringKeepNulls(llList2String(loc_params, 1), (list)".", []));
+            }
+            else if (loc_verb == "setd")
+            {
+                llLinksetDataWrite(llList2String(loc_params, 0), llJsonSetValue(llLinksetDataRead(llList2String(loc_params, 0)), llParseStringKeepNulls(llList2String(loc_params, 1), (list)".", []), llList2String(loc_params, 2)));
+            }
+            else if (loc_verb == "deleted")
+            {
+                llLinksetDataWrite(llList2String(loc_params, 0), llJsonSetValue(llLinksetDataRead(llList2String(loc_params, 0)), llParseStringKeepNulls(llList2String(loc_params, 1), (list)".", []), "﷘"));
+            }
+            else if (llGetSubString(loc_verb, 0, 0) == "@")
+            {
+                llMessageLinked(1, 0, "!!" + H + (string)L + " " + "00000000-0000-0000-0000-000000000000" + " " + (string)I + " " + llDeleteSubString(loc_verb, 0, 0) + " " + (string)loc_params, "");
+            }
+            else if (llGetSubString(loc_verb, 0, 0) == "#")
+            {
+                llMessageLinked(((integer)-4), (integer)llDeleteSubString(loc_verb, 0, 0), (string)loc_params, I);
+            }
+            else if (loc_verb == "﷐")
+            {
+                llJsonValueType = llJsonValueType + "[]";
+            }
+            else if (loc_verb == "﷕")
+            {
+                if (loc_c)
+                    llJsonValueType = llJsonValueType + llList2List(loc_params, ((integer)-1), ((integer)-1));
+            }
+            else
+            {
+                llOwnerSay(">> unknown verb: " + loc_verb);
+            }
+        }
+        else
+        {
+            llOwnerSay(">> unknown data type: " + loc_type);
+        }
+        loc_descending = loc_backtrack = 0;
+    }
+    return llJsonValueType;
+}
+
+string _(list llJsonValueType)
+{
+    list loc_opens;
+    integer loc_tcount = llJsonValueType != [];
+    integer loc_open_quote = ((integer)-1);
+    integer loc_comment_start = ((integer)-1);
+    integer loc_i;
+    for (; loc_i < loc_tcount; ++loc_i)
+    {
+        string loc_t = llList2String(llJsonValueType, loc_i);
+        if (~loc_comment_start)
+        {
+            if (loc_t == "\n")
+            {
+                llJsonValueType = llDeleteSubList(llJsonValueType, loc_comment_start, loc_i);
+                loc_tcount = loc_tcount + ~(loc_i + -loc_comment_start);
+                loc_i = loc_comment_start;
+                loc_comment_start = ((integer)-1);
+            }
+        }
+        else if (~loc_open_quote)
+        {
+            if (loc_t == "\"")
+            {
+                string loc_str;
+                if (-~loc_open_quote ^ loc_i)
+                    loc_str = "\\\"" + llDumpList2String(llList2List(llJsonValueType, -~loc_open_quote, ~-loc_i), " ") + "\\\"";
+                else
+                    loc_str = "";
+                llJsonValueType = llListReplaceList(llJsonValueType, (list)loc_str, loc_open_quote, loc_i);
+                loc_i = loc_open_quote;
+                loc_open_quote = ((integer)-1);
+            }
+        }
+        else
+        {
+            if (loc_t == "")
+            {
+                llJsonValueType = llDeleteSubList(llJsonValueType, loc_i, loc_i);
+                --loc_i;
+                --loc_tcount;
+            }
+            else if (loc_t == "\"")
+            {
+                loc_open_quote = loc_i;
+            }
+            else if (loc_t == "(")
+            {
+                loc_opens = loc_opens + loc_i;
+            }
+            else if (loc_t == ";")
+            {
+                loc_comment_start = loc_i;
+            }
+            else if (loc_t == "\n")
+            {
+                llJsonValueType = llDeleteSubList(llJsonValueType, loc_i, loc_i);
+                --loc_i;
+                --loc_tcount;
+            }
+            else if (loc_t == ")")
+            {
+                if (loc_opens == [])
+                {
+                    llOwnerSay("++ Excess closing parens at " + (string)loc_i + ".");
+                    return "";
+                }
+                integer loc_L = llList2Integer(loc_opens, ((integer)-1));
+                loc_opens = llDeleteSubList(loc_opens, ((integer)-1), ((integer)-1));
+                string loc_frag;
+                if (-~loc_L ^ loc_i)
+                    loc_frag = llList2Json("﷒", llList2List(llJsonValueType, -~loc_L, ~-loc_i));
+                else
+                    loc_frag = "[]";
+                if (llJsonValueType(loc_frag, (list)0) == "﷒")
+                    loc_frag = llList2Json("﷒", "﷕" + llList2List(llJsonValueType, -~loc_L, ~-loc_i));
+                llJsonValueType = llListReplaceList(llJsonValueType, (list)loc_frag, loc_L, loc_i);
+                loc_tcount = llJsonValueType != [];
+                loc_i = loc_L;
+            }
+        }
+    }
+    if (~loc_open_quote)
+    {
+        llOwnerSay("++ unclosed quote following: " + llDumpList2String(llList2List(llJsonValueType, ~-~-loc_open_quote, 4 + loc_open_quote), " "));
+        return "";
+    }
+    else if (loc_opens != [])
+    {
+        llOwnerSay("++ imbalanced parens (" + (string)(loc_opens != []) + ").");
+        return "";
+    }
+    else
+    {
+        return llList2Json("﷒", llJsonValueType);
+    }
+}
+
+integer F;
+integer J;
+key Pop;
+key edefaultchat;
+key LslLibrary;
+string edefaultstate_entry;
+string ResumeVoid;
+
+B(integer llJsonValueType, integer llGetListEntryType, string llFrand, key llList2String, key llSubStringIndex, key llListen)
+{
+    if (llGetListEntryType)
+        if (llGetListEntryType ^ 275)
+        {
+            if (llGetListEntryType ^ 4093)
+                if (llGetListEntryType ^ 3850)
+                {
+                    llOwnerSay("[" + LslUserScript + "] unimplemented signal " + (string)llGetListEntryType + ": " + llFrand);
+                }
+                else
+                {
+                    llOwnerSay("[" + LslUserScript + "] failed to run '" + llFrand + "' (kernel could not find the program specified)");
+                }
+        }
+        else
+        {
+            if (llFrand == LslUserScript + " file")
+            {
+                if (llSubStringIndex == LslLibrary)
+                {
+                    string loc_file_buffer;
+                    {
+                        loc_file_buffer = A(LslLibrary);
+                    }
+                    integer loc_read_length = 10;
+                    if (ResumeVoid == "b")
+                        loc_read_length = loc_read_length * 1024;
+                    if (~J)
+                    {
+                        F = F + loc_read_length;
+                    }
+                    else
+                    {
+                        list loc_stat = llParseString2List(loc_file_buffer, (list)" ", []);
+                        J = (integer)llList2String(loc_stat, 0);
+                        ResumeVoid = llList2String(loc_stat, 1);
+                        F = 0;
+                    }
+                    if (J < loc_read_length + F)
+                        loc_read_length = J + -F;
+                    if (F)
+                    {
+                        gA = gA + ("\n" + llParseStringKeepNulls(loc_file_buffer, (list)" ", (list)"(" + ")" + "\""));
+                        if (F < J)
+                        {
+                            llRegionSayTo(gC, 2046828547, "%!" + H + (string)LslLibrary + " " + LslUserScript + " " + edefaultstate_entry + " " + ((string)F + " " + (string)loc_read_length));
+                        }
+                        else
+                        {
+                            llRegionSayTo(gC, 2046828547, "%3" + H + "[\"" + (string)LslLibrary + "\"]");
+                            I = edefaultchat;
+                            L = Pop;
+                            string loc_prog = _(gA);
+                            list loc_output = C((list)("{\"c\":" + loc_prog + ",\"i\":" + "[]" + ",\"sp\":" + "-1" + ",\"p\":" + "-1" + ",\"v\":" + "{}" + ",\"r\":" + "0" + ",\"t\":0}"));
+                            string loc_msg;
+                            if (D)
+                            {
+                                loc_msg = "-- Interrupted!";
+                            }
+                            else
+                            {
+                                loc_msg = llDumpList2String(loc_output, " ");
+                            }
+                            {
+                                llLinksetDataWrite("p:" + (string)edefaultchat, llLinksetDataRead("p:" + (string)edefaultchat) + loc_msg + "");
+                                llRegionSayTo(gC, 2046828547, "%1" + H + (string)edefaultchat + " " + (string)Pop);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (0 < J)
+                        {
+                            llRegionSayTo(gC, 2046828547, "%!" + H + (string)LslLibrary + " " + LslUserScript + " " + edefaultstate_entry + " " + ((string)F + " " + (string)loc_read_length));
+                        }
+                        else
+                        {
+                            {
+                                llLinksetDataWrite("p:" + (string)edefaultchat, llLinksetDataRead("p:" + (string)edefaultchat) + "No file: " + edefaultstate_entry + "");
+                                llRegionSayTo(gC, 2046828547, "%1" + H + (string)edefaultchat + " " + (string)edefaultchat);
+                            }
+                            llRegionSayTo(gC, 2046828547, "%3" + H + "[\"" + (string)LslLibrary + "\"]");
+                            System = llJsonSetValue(System, (list)LslLibrary, "﷘");
+                        }
+                    }
+                }
+                else
+                {
+                    llOwnerSay("[" + LslUserScript + "] file data offered via unexpected pipe: " + (string)llSubStringIndex);
+                }
+            }
+        }
+    else
+    {
+        list loc_argv = llParseString2List(llFrand, (list)" ", []);
+        integer loc_argc = loc_argv != [];
+        if (~-loc_argc)
+        {
+            Pop = llList2String;
+            edefaultchat = llListen;
+            gA = UThreadStackFrame = gB = [];
+            D = "";
+            edefaultstate_entry = llList2String(loc_argv, 1);
+            ResumeVoid = "";
+            F = J = ((integer)-1);
+            llRegionSayTo(gC, 2046828547, "%!" + H + (string)(LslLibrary = llGenerateKey()) + " " + LslUserScript + " " + edefaultstate_entry + " " + "-1");
+            {
+                System = llJsonSetValue(System, (list)LslLibrary, edefaultstate_entry);
+                llMessageLinked(1, 3859, LslUserScript + "," + (string)(G = G | 1), "");
+            }
+        }
+        else
+        {
+            {
+                llLinksetDataWrite("p:" + (string)llList2String, llLinksetDataRead("p:" + (string)llList2String) + "Syntax: @" + LslUserScript + " <filename>" + "");
+                llRegionSayTo(gC, 2046828547, "%1" + H + (string)llList2String + " " + (string)llListen);
+            }
+        }
+    }
+}
+
+integer edefaultrez;
+integer UThread;
+key IsRestoring;
+key Library;
+key IsSaveDue;
+integer G;
+
+default
+{
+    state_entry()
+    {
+        E = llGetLinkKey(1);
+        gC = llGetLinkKey(2);
+        K = llGetLinkKey(3);
+        LslUserScript = llGetScriptName();
+        edefaultrez = llListen(2046820352, "", E, "");
+        llMessageLinked(1, 3840, LslUserScript + "\n" + "0.2.5" + " " + "lang " + "0.2.3", "");
+    }
+
+    on_rez(integer llJsonValueType)
+    {
+        llResetScript();
+    }
+
+    listen(integer llListen, string llFrand, key llGetListEntryType, string llJsonValueType)
+    {
+        integer loc_n = (((integer)-33) + llOrd(llJsonValueType, 0)) * 64 + (((integer)-33) + llOrd(llJsonValueType, 1));
+        if (llListen ^ 2046820352)
+        {
+            IsRestoring = "00000000-0000-0000-0000-000000000000";
+            Library = "00000000-0000-0000-0000-000000000000";
+            string loc_remainder = llDeleteSubString(llJsonValueType, 0, 1);
+            if (loc_n & -!(loc_n == 275))
+            {
+                B(UThread = 0, loc_n, loc_remainder, "00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000000");
+            }
+            else
+            {
+                Library = llGetSubString(loc_remainder, 2, 37);
+                IsRestoring = llGetSubString(loc_remainder, 39, 74);
+                IsSaveDue = llGetSubString(loc_remainder, 76, 111);
+                B(UThread = (((integer)-33) + llOrd(loc_remainder, 0)) * 64 + (((integer)-33) + llOrd(loc_remainder, 1)), loc_n, llDeleteSubString(loc_remainder, 0, 112), Library, IsRestoring, IsSaveDue);
+            }
+            if (UThread & -(llJsonGetValue(System, (list)((string)IsRestoring)) == "﷐"))
+                llRegionSayTo(gC, 2046828547, "%3" + H + "V" + llList2Json("﷒", (list)IsRestoring));
+            if (llList2ListStrided(llJson2List(System), 0, ((integer)-1), 2) == [])
+            {
+                {
+                    if (UThread)
+                        llMessageLinked(1, 4, llChar(33 + ((UThread & 4032) >> 6)) + llChar(33 + (UThread & 63)) + (string)IsRestoring + " " + LslUserScript, "");
+                    llMessageLinked(1, 3849, LslUserScript, "");
+                    G = G & ((integer)-2);
+                    llSetScriptState(LslUserScript, 0);
+                    llSleep(0.022);
+                }
+            }
+            else
+            {
+                if (UThread)
+                    llMessageLinked(1, 4, llChar(33 + ((UThread & 4032) >> 6)) + llChar(33 + (UThread & 63)) + (string)IsRestoring + " " + LslUserScript, "");
+            }
+        }
+        else
+        {
+            if (loc_n == 3841)
+            {
+                string loc_expected_program_name = llDeleteSubString(llJsonValueType, 0, 3);
+                if (loc_expected_program_name == LslUserScript)
+                {
+                    llListenRemove(edefaultrez);
+                    H = llGetSubString(llJsonValueType, 2, 3);
+                    g_ = (((integer)-33) + llOrd(H, 0)) * 64 + (((integer)-33) + llOrd(H, 1));
+                    integer loc_C = 2046832640 + g_;
+                    edefaultrez = llListen(loc_C, "", E, "");
+                    llMessageLinked(1, 3859, LslUserScript + "," + (string)G, "");
+                    B(UThread = 0, 4093, "", "00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000000");
+                    llMessageLinked(1, 3860, LslUserScript, "");
+                }
+            }
+        }
+    }
+}

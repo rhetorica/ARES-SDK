@@ -1,0 +1,468 @@
+
+A. Lazuli
+Nanite Systems Communications Corporation (NANOCOM)
+April 2024
+
+Signals Protocol Working Group
+PUBLIC MEMO
+
+VERSION 0.4
+
+
+Status of this Memo
+
+This document specifies a Company-Wide Best Current Practices (CWBCP) for the Nanite Systems Corporate Community, and requests discussion and suggestions for improvements.  Distribution of this memo is unlimited.
+
+
+Copyright Notice
+
+Copyright (C) Nanite Systems Communications Corporation (2024).  All Rights Reserved.
+
+
+Abstract
+
+This document describes a protocol for use in querying and reporting the capabilities and functions provided by devices in Second Life.  It includes the HW-CAPS and AV-CAPS subprotocols, which respectively cover individual machinery and available user interfaces.
+
+
+1. Introduction
+
+1.1. HW-CAPS: IoT for SL
+
+The ORIX (Open Robot Interface) protocol [ORIX API] was designed by Chelton & Brattle in 2014 as a successor to the partly public Autonomy Control Systems (ACS) Central Control Unit (CCU) protocol.  Its intended purpose is to provide a standard for electronic communications between attached devices and equipment such as the ACS CCU or NS robot controllers.  Since that time, ORIX has only seen limited success, being used only to provide ping messages for the ACS Hub's directory services and the scan feature in the NS ARemote.  It is unclear how many manufacturers adopted ORIX as a standard for these ping messages.  ARES, Companion, and presumably the ACS ArtCore are known to be compatible, but ACS's flagship CCU product, which has not seen an update since the ORIX protocol was announced, is most likely still incompatible.
+
+A decade onward, Autonomy Control Systems has a much smaller install base than Nanite Systems (an estimated 968 vs 5253 registered users, or 18%).  It seems to have abandoned the ORIX project, and is mostly senescent.  Without any install base of devices that actually use the ORIX protocol for more than pinging, and the conspicuous incompleteness of the available specification, the upfront costs of actually adopting ORIX for device-controller communications are prohibitive, and unlikely to provide any benefit over the de facto standard usage of the NS Light Bus for routine functions.  (Note that two recent manufacturers [KOR] [OeM] advertise NS Light Bus compatibility.)
+
+Nevertheless, ORIX contains the seeds of some very good concepts that have potential use beyond robot-device interfaces.  There is currently no method in Second Life for programmatically identifying objects in terms of their function or protocols; SL has consistently been a community of closed vendors and jealously guarded APIs, even though the rest of the software industry has largely moved on to open standards.  Hopefully by laying the seeds of a better approach, NS can light the way to a more open model, or at the very least provide a richer experience for our third-party developers.
+
+HW-CAPS (Hardware Capabilities) is a standard (and reference implementation) for a device identification system.  It focuses on providing the information that an end user might expect to receive from a port scanning utility in a cyberpunk setting.  The protocol and implementation are both designed to be minimalistic, while still producing highly legible output to support discovery through reverse engineering.
+
+
+1.2. AV-CAPS: A HUD Provisioning System
+
+The Experiences API [SL R1365], introduced in 2014, includes among its facilities a mechanism for automatically providing attachments for immersive gameplay.  This is clunky for several reasons.  The attachment needs to be rezzed by some linkset already in the Experience, which is an error-prone process; if the attachment has any stored data about the avatar it wants to preserve, this must be done using an external source, which might be prone to bitrot; and perhaps most concerningly, the Experience's availability is subject to the continued payment of a Premium account subscription, which is an inherently tenuous proposition.
+
+These requirements were manageable when Experiences were limited to land-scope only, as the onus fell onto the parcel owner to ensure that rezzable land was available to any attachment provisioning appliance, but with the recent (2023/24) elevation of all Experiences to grid-wide status, the inconvenience of wanting to provide user interfaces is much more poignant.
+
+Interestingly, the somewhat older RestrainedLove system [RLV API] implemented in most third-party Second Life viewers offers the technical platform to build a more robust system.  The RLV ecosystem has long provided the SharedWear system, which provides for the transfer of inventory items from one object to the avatar, and automatically attaching said items, without the intermediate step of rezzing them.  Moreover it has no associated upkeep costs and is therefore much less likely to fail in the case of ownership turnover.
+
+AV-CAPS (Avatar Capabilities) is a standard (and reference implementation) for an attachment management system that automatically deploys and attaches interfaces to the avatar at the request of compatible equipment.  Like HW-CAPS, it is lightweight, stateless, durable, and uses self-documenting message formats that are easy to decipher.
+
+
+1.3. Terminology and Notation
+
+The "client" is an object or avatar that wishes to utilize CAPS functionality, or access information regarding said functionality.
+
+The "CAPS host" is an object or avatar that provides CAPS functionality.
+
+The "host operator" is the avatar that has control of the CAPS host.
+
+The "inquiring user" is the avatar that has control of the client.
+
+A "device" is any scripted object that performs channel-based communications.
+
+Words in <angle brackets> are variables; the angle brackets should be removed during substitution.  For example, <c> in
+
+	info <c>
+
+should be replaced with a channel number; using the channel number 1234, the resultant message is
+
+	info 1234
+	
+and not,
+
+	info <1234>
+
+Except where otherwise noted, terms in [square brackets] are optional.  Spaces surrounding terms in square brackets are only required if the terms are included.  For example, "a [b] c" means either "a b c" or "a c", but not "a  c".
+
+Finally, the keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119].
+
+
+2. Channels
+
+All query messages must be sent on channel 411 to be processed by the CAPS host.  Each query message specifies a channel, on which the CAPS host must send its reply, if any.
+
+If the operator does not wish to expose CAPS abilities to a specific client, the CAPS host may ignore incoming messages from that object without any response, or prompt the host operator to intercede.  Inquiring clients must consider 15 seconds of silence to be a negative response, and after that time should abolish any temporary listeners that are waiting for a reply.
+
+
+3. Queries
+
+
+3.1. INFO
+
+CAPS sessions begin with the message:
+
+	info <c>
+
+sent on the query channel, where <c> is the channel number on which the host should respond.
+
+
+3.2. CONNECT
+
+If the host returns an AV-CAPS signal (see 4.1. AVC), then the client may follow up with:
+
+	connect <service> <c>
+
+sent on the query channel, where <c> is the channel number on which the host should respond, and <service> is one of the services offered by the host operator (see 5.2. AV-CAPS Services).  The host should activate the service if possible and then reply with a "ready" or "error" message (see 4.3. READY and 4.4. ERROR).
+
+
+4. Responses
+
+A single CAPS host may send both the "hwc" and "avc" messages in response to an "info" query.
+
+
+4.1. HWC
+
+In response to the "info" message (see 3.1. INFO), the CAPS host should return the following message if it supports HW-CAPS:
+
+	hwc {"vendor":"<vendor>","version":"<version>","purpose":"<purpose>","channel":<channels>,"private":<privacy>,"busy":<business>,"usable":<usability>,"health":<healthiness>,"info":"<URL>"}
+
+This message should be sent on the reply channel, which was provided by the client (see 3.1. INFO) previously.  It may be sent up to 15 seconds after the initial request, providing the host operator time to manually reject the inquiry if necessary.
+
+The parameters in this message are as follows:
+
+	<vendor>: A short string identifying the name of the company or person responsible for manufacturing the CAPS host.
+	
+	<version>: The version number of the CAPS host.
+	
+	<purpose>: A single word identifying the CAPS host's primary function.  See Appendix A for a list of defined Purposes.  In certain cases multiple purposes may be required, e.g. both hydro and motor to describe a pump; these should be separated by a comma, e.g. "hydro,motor".
+	
+	<channels>: A JSON object listing channels supported by the CAPS host.  Entries must be sorted by name in ascending order using a UTF-8 binary collation.  Protocol names should be in lower case with a minimum of punctuation.  See Appendix B for a list of well-documented protocols.  For example, ARES baseband returns
+	
+		{"acs":360,"arena":-9990009,"caps":411,"command":1,"lights":-237433740,"orix":-15180925,"public":-9999999,"public-alt":-9999998,"stargate":-900000,"trigger":0,"weather":-78838783}
+	
+	The braces are required.
+	
+	<privacy>: 1 if not all avatars may access the primary functions of the host, otherwise 0.
+	
+	<business>: 1 if new attempts to access the host would be rejected due to capacity limits, otherwise 0.
+	
+	<usable>: 1 if the host is in working order and powered on, otherwise 0.
+	
+	<healthiness>: 1.00 if the host is undamaged, otherwise a value in the range [0.00,1.00) reflecting the level of damage.
+	
+	<URL>: a uniform resource indicator where primary documentation about the host can be obtained.
+
+
+4.2. AVC
+
+In response to the "info" message (see 3.1. INFO), the CAPS host should return the following message if it supports AV-CAPS:
+
+	avc	{"platform":"<platform>","version":"<version>","vendor":"<vendor>","service":<services>}
+
+This message should be sent on the reply channel, which was provided by the client (see 3.1. INFO) previously.  It may be sent up to 15 seconds after the initial request, providing the host operator time to manually reject the inquiry if necessary.
+
+The parameters in this message are as follows:
+
+	<platform>: The name of the product providing AV-CAPS functionality, which might differ from its object name; for example, "ARES"
+	<version>: As defined in 4.1. HVC.
+	<vendor>: As defined in 4.1. HVC.
+	<services>: A JSON object providing names and version numbers for services defined in Appendix C.  Each name and version number is wrapped in quotation marks, and joined by a colon.  Separate services are separated by commas.  For example, a CAPS system loaded to provide HUDware and Facet services might return: {"HUDware":"1.0","Facet":"1.0"} (version 1.0 of HUDware is available, and version 1.0 of Facet is available.)
+
+
+4.3. READY
+
+To acknowledge a successful "connect" solicitation (defined in 3.2. CONNECT) the AV-CAPS host should respond with:
+
+	ready <service> [<uuid> <channel>]
+
+on the reply channel (as provided by the client in the "connect" message), where <service> is the name of the service solicited, and <uuid> is the UUID of the activated service.
+
+In general the onus falls on the client to know the channel in advance and to discover the correct UUID.  The CAPS host may specify these fields if the service is CAPS-aware and provided a suitable "service" message (see 6.1. SERVICE).
+
+
+4.4. ERROR
+
+To acknowledge a failed "connect" solicitation (defined in 3.2. CONNECT) the AV-CAPS host should respond with:
+
+	error <service> <reason>
+
+Where <service> is the name of the service solicited, and <reason> is a word indicating why the connection failed, chosen from one of the codes in section 4.4.1.
+
+
+4.4.1. Error Codes
+
+ - full: The service is already at capacity and cannot handle any more interactions.  This supplants the 'busy' error message in earlier versions of this document.
+ - unsupported: The client requested an unknown service.
+ - banned: The client or inquiring avatar is unwelcome.
+ - refused: The host does not wish to disclose the reason that the connection attempt failed.
+ - wait: The service is already in the process of deploying or booting.  Try again in a few seconds.
+
+
+5. Messages from AV-CAPS to Services
+
+Although AV-CAPS can be used to provision any attachments on the avatar, its utility is enhanced when it can inform the client of a service's state.  A service is considered "CAPS-aware" if it understands the messages in this section and can respond with the messages in the next section.
+
+Services should ignore these messages if they are sent from a UUID that is not attached to the owning avatar, i.e.
+
+	llList2Integer(llGetObjectDetails(source, [OBJECT_ATTACHMENT_POS]), 0) == 0 || llGetOwnerKey(source) != llGetOwner()
+
+where "source" is the UUID of the object sending the messages in question.
+
+
+5.1. CLIENT
+
+To inform a service that a client is attempting to engage it (see 3.2. CONNECT), the AV-CAPS host should tell it:
+
+	client <service> <id> <c>
+
+Where <service> and <c> are copied from the previous "connect" solicitation (see 3.2. CONNECT) and <id> is the UUID of the client that sent the connection.
+
+
+5.2. SHUTDOWN
+
+The AV-CAPS host may demand that a service close all connections and detach itself.  This is typically in response to a user action, such as deactivating AV-CAPS, or leaving the service's operational theater.  If a service receives the message:
+
+	shutdown
+	
+Provided the source is valid (see 5. Messages from AV-CAPS to Services), the service shall clean up any ongoing dialogs with connected clients and detach itself.
+
+The AV-CAPS host may also send the "shutdown" message after the host is rebooted, to ensure that services are in a known good configuration before continuing.
+
+
+5.3. STATUS
+
+At any time the AV-CAPS host may attempt to poll a service with the message:
+
+	status
+
+Upon receipt of this message on the CAPS channel, a CAPS-aware service should reply with the "service" message (see 6.1. SERVICE) on the same channel.
+
+
+6. Messages from Services to AV-CAPS
+
+
+6.1. SERVICE
+
+When the service is ready to receive connections, or receives a new connection, it MAY report this information to llGetOwner() on the CAPS channel (see 2. Channels).  It shall use one of the following forms:
+
+	service ready <service> <channel>
+	service full <service> <channel>
+
+If the service is capable of handling additional interactions, then the "ready" form is appropriate.  Otherwise, it should send the "full" form.
+
+If <channel> is specified, and the AV-CAPS host also provides HW-CAPS functionality, then the service will be listed with the indicated channel in HW-CAPS queries so long as it remains in the "ready" state.
+
+
+7. Miscellaneous Implementation Requirements
+
+
+7.1. Naming of Services & Attachments
+
+Service attachments must be named <service>-<version>, where <service> is a short string of ASCII letters, hyphens, and digits uniquely identifying the service, and <version> is a string of ASCII digits and periods (.) uniquely identifying the service's version number. The last hyphen in the string is used to separate the service name from the version number.
+
+Service names must begin with a letter. They may not have multiple consecutive hyphens, nor end in a hyphen. Capitalization is allowed, but will be stripped during communications.
+
+Version numbers must begin and end with a digit. They may not have multiple consecutive periods.
+
+The following service attachment names are legal:
+
+	HUDware-1.0.0
+	a-00000000
+	zzz-0.0.0.0.0
+
+The following service attachment names are illegal:
+
+	My c00l HUD version 1.0 (contains spaces, no hyphen)
+	facet-1.0a1 (contains a letter in the version number)
+	-dot-. (does not start with a letter; version number does not start or end with a digit)
+	bob (no version number at all)
+
+
+8. Future Developments
+
+TBD
+
+
+9. Acknowledgements
+
+TBD
+
+
+10. Author's Address
+
+Atarah Vella Lazuli
+NANOCOM Davies Research Institute
+1100 Blazkowicz Road
+Elysium, Mars
+22+90771
+
+
+11. References
+
+[ORIX API] Chelton, A. and Brattle, J. "ORIX Wiki" <https://orix.fandom.com/wiki/ORIX_Wiki> Last updated 2014-07-10.
+
+[RLV API] Kelley, M. "RestrainedLove API Specification" <https://wiki.secondlife.com/wiki/LSL_Protocol/RestrainedLoveAPI> Last updated 2021-07-01.
+
+[SL R1365] Linden, J. "Experiences in Second Life" <https://community.secondlife.com/knowledgebase/english/experiences-in-second-life-r1365/> July 2014.
+
+[RFC 2119] Bradner, S. "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+[OeM] Hardwick, E. et al. "Obedientia ex Machina Documentation" <https://elvahardwick.github.io/Obedientiae-ex-Machina-Docs/> Accessed 2024-03-11.
+
+[KOR] Snowpaw, D. "KOR Trailblazer" (Product Info) <https://marketplace.secondlife.com/p/KOR-Trailblazer/24133772> Accessed 2024-03-11.
+
+
+Appendix A: HW-CAPS Purposes
+
+Inquiring clients that present a user interface documenting discovered CAPS hosts should be aware of the following purposes that those hosts could indicate:
+
+ - charge: Recharges electronics.
+ - security: Prevents unauthorized access, or circumvents access prevention measures.
+ - battery: Stores power.
+ - power: Distributes power from another source.
+ - repair: Fixes damage to electronics.
+ - info: Presents human-readable information.
+ - light: Provides illumination. Purely decorative objects will generally use this purpose.
+ - furniture: Can be sat upon. Do not tag with 'storage' unless the furniture is multifunctional.
+ - server: Central repository for settings or objects.
+ - defend: Thwarts or harms attackers. Do not specify 'safety' and 'defend' purposes for the same device.
+ - attack: Deals damage or impairs targets.
+ - medical: Diagnoses or heals organics.
+ - control: Integrates signals and makes decisions.
+ - stasis: Stores organics in suspended animation or medical coma.
+ - data: Stores or transfers electronic information.
+ - logistic: Facilitates distribution of equipment, people, or products.
+ - hydro: Directs or utilizes the flow of water or other liquids and gasses.
+ - motor: Produces rotational movement using electromagnetism, or electricity from rotation.
+ - cryo: Removes heat.
+ - thermal: Generates heat.
+ - homeostasis: Maintains temperature, pressure, and/or humidity at target values within a body, or removes toxins. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'homeostasis' purpose.
+ - safety: Mitigates or prevents unsafe industrial or environmental conditions. Do not specify 'safety' and 'defend' purposes for the same device.
+ - network: Transfers signals between other connected devices.
+ - fabricate: Conducts manufacturing.
+ - enviro: Maintains temperature, pressure, and/or humidity at target values within a space, or removes pollution. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'enviro' purpose.
+ - chem: Conducts a chemical reaction or stores chemicals.
+ - comm: Provides an interface for long-distance or human-readable communications, such as a telephone or satellite receiver.
+ - nav: Assists with automated driving, typically by providing directions, coordinating traffic, or serving as a travel waypoint.
+ - detect: Identifies objects meeting set criteria.
+ - cargo: Holds goods, resources, or robots during transit.
+ - clean: Removes contaminants.
+ - engine: Generates motion for a vehicle or machine. Supersedes the 'motor' purpose.
+ - kinematics: Animation overriders and systems that control articulation or motion of robotic equipment.
+ - vehicle: Holds individuals and provides transit. Do not combine with purposes necessary for a vehicle to function (e.g. 'motor' or 'engine')
+ - travel: Facilitates movement in some unspecified way other than a vehicle, e.g. a teleporter or jump pad.
+ - ammo: Refills ammunition, or can be used as ammunition.
+ - fuel: Refills fuel, or can be used as fuel.
+ - respawn: Location where an avatar or object reappears after a defeat.
+ - objective: Target of a game, e.g. a capture point or flag.
+ - bio: Biological research or storage equipment.
+ - storage: General storage. Do not tag with 'cargo' purpose. Only tag with 'furniture' if the object contains both storage and sittable surfaces (e.g. a combined chair and bookcase).
+ - agri: Farming equipment.
+ - science: General scientific research or surveying equipment, not otherwise specified. Do not tag with 'bio', 'chem', or 'agri'.
+
+
+Appendix B: HW-CAPS Channels
+
+The following channels should be listed for HW-CAPS if relevant.
+
+Service       Channel			Description
+----------------------------------------------------------------------------------------
+orix-alt      9360              Alternate channel for orix
+pds           5201              Nanite Systems Power Distribution System
+facet         5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
+caps          411               CAPS itself (this document; optional)
+acs           360               Autonomy Control Systems CCU protocol (http://develop.nanite-systems.com/resources/ACS-charging.pdf)
+command       1*                Generic term for command handler using a name-based prefix (commonly used by collars)
+trigger       0                 Generic term for any detection of commands issued in normal local chat
+lockmeister  -8888              LockMeister system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockMeister_System)
+lockguard    -9119				LockGuard system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockGuard)
+hudware      -82104             NANOCOM HUDware bidirectional (http://develop.nanite-systems.com/HUDware)
+ao-link      -782690            OpenCollar AO Link
+stargate     -900000            Alteran Stargate Network
+arena        -9990009           ATOS Arena
+tesi         -9999969           NS TESI Lust (http://develop.nanite-systems.com/?id=1924#LC%20messages)
+public       -9999999           NS public bus (http://develop.nanite-systems.com/?public)
+public-alt   -9999998           Alternate channel for public
+weather      -78838783          Nanite Systems Weather Service
+orix         -15180924          ORIX query (https://orix.fandom.com/wiki/ORIX_Wiki)
+rlvrs        -1812221819        RLV relay (https://wiki.secondlife.com/wiki/LSL_Protocol/Restrained_Love_Relay/Specification)
+lights        **                Nanite Systems Light Bus (http://develop.nanite-systems.com/?light_bus)
+----------------------------------------------------------------------------------------
+** No set channel number, or channel number decided based on object key
+* Channel number is only a default; may vary based on user preferences
+
+See also other protocols at https://wiki.secondlife.com/wiki/LSL_Protocol
+
+
+Appendix C: AV-CAPS Services
+
+The following services should be listed for AV-CAPS if relevant.  Services fall into three major categories: general-purpose interface platforms, immersion interfaces, and device-specific utilities.
+
+
+Appendix C.1. Interface Platforms
+
+Interface platforms are HUDs that are used to build other HUDs.
+
+hudware: HUDware Workspace
+facet: Facet menu tool
+
+
+Appendix C.2. Immersion Interfaces
+
+Immersion interfaces are HUDs that are used to display status or interactions for gameplay.
+
+conversant: Conversant dialog system
+ahm: AHM Client
+inventory: NS trading & inventory management UI
+wallet: myNanite Financial Credit Wallet
+hunter: generic treasure hunt UI
+hacking: iLLUSiON penetration testing system
+dryad: DRYAD-III signal hunting interface
+
+
+Appendix C.3. Configuration and Access Utilities for Rezzed Objects
+
+anav: ARES Navigation Server Setup
+
+
+Appendix C.4. Configuration Utilities for Attachments
+
+wavelength: NS Wavelength Selection HUD
+bismuth: ARES Color HUD
+holoprobe: Holo-Pleasure Probe Deluxe HUD
+icon: NS Akashic Icon Control HUD
+stallion: NS-24 Stallion HUD
+projector: NS-478 Holoprojector Calibration Utility
+fw-eyes: Fateweaver Soothsayer Eyes HUD
+
+
+Appendix D. HW-CAPS Sample Implementation
+
+	integer C_CAPS = 411;
+
+	default {
+		state_entry() {
+			llListen(C_CAPS, "", "", "");
+		}
+
+		listen(integer channel, string name, key id, string message) {
+			if(channel == C_CAPS) {
+				if(llGetSubString(message, 0, 4) == "info ") {
+					integer rc = (integer)llDeleteSubString(message, 0, 4);
+					tell(id, rc, "hwc " + llList2Json(JSON_OBJECT, [
+						"vendor", "Nanite Systems Consumer Products",
+						"version", "0.4",
+						"purpose", "light",
+						"channel", llList2Json(JSON_OBJECT, [
+							"caps", C_CAPS
+						]),
+						"private", FALSE,
+						"busy", FALSE,
+						"usable", TRUE,
+						"health", 1.0,
+						"info", "http://support.nanite-systems.com/example"
+					]));
+				}
+			}
+		}
+	}
+
+Full Copyright Statement
+
+Copyright (C) Naanite Systems Communications Corporation (2024).  All Rights Reserved.
+
+This document and translations of it may be copied and furnished to others, and derivative works that comment on or otherwise explain it or assist in its implementation may be prepared, copied, published and distributed, in whole or in part, without restriction of any kind, provided that the above copyright notice and this paragraph are included on all such copies and derivative works.  However, this document itself may not be modified in any way, such as by removing the copyright notice or references to the Nanite Systems Communications Corporation or other Nanite Systems organizations, except as needed for the purpose of developing communications standards in which case the procedures for copyrights defined in the Internet Standards process must be followed, or as required to translate it into languages other than English.
+
+The limited permissions granted above are perpetual and will not be revoked by the Nanite Systems Communications Corporation or its successors or assigns.
+
+This document and the information contained herein is provided on an "AS IS" basis and NANITE SYSTEMS AND THE SIGNALS PROTOCOL WORKING GROUP DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
