@@ -89,7 +89,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		integer argc = count(argv);
 		string msg = "";
 		if(argc == 1) {
-			msg = "Syntax: " + PROGRAM_NAME + " [-d <database> -m <domain> -q <querykey> -s|-f|-a-p] <query>\n\nLooks up <query> on the specificed [https://www.ncbi.nlm.nih.gov/ NCBI Entrez] database at <domain> (default: " + DEFAULT_DB + " at " + DEFAULT_DOMAIN + "). -s will retrieve summaries from a matching WebEnv query. -q will set the query key (default: 1) -p will post queries to sequence databases. -a will fetch abstracts. -f will fetch FASTA sequences.";
+			msg = "Syntax: " + PROGRAM_NAME + " [-d <database> -m <domain> -q <querykey> -s|-f|-a-p] <query>\n\nLooks up <query> on the specified [https://www.ncbi.nlm.nih.gov/ NCBI Entrez] database at <domain> (default: " + DEFAULT_DB + " at " + DEFAULT_DOMAIN + "). -s will retrieve summaries from a matching WebEnv query. -q will set the query key (default: 1) -p will post queries to sequence databases. -a will fetch abstracts. -f will fetch FASTA sequences.";
 		} else {
 			string domain = DEFAULT_DOMAIN;
 			string database = DEFAULT_DB;
