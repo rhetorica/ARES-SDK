@@ -41,7 +41,7 @@
 #define ARES
 
 // version that OS components will report:
-#define ARES_VERSION "0.5.0"
+#define ARES_VERSION "0.5.1"
 #define ARES_VERSION_TAGS "beta 3"
 
 // copyright year for the OS:
@@ -313,6 +313,10 @@ string E_PROGRAM_NUMBER = "!!";
 
 // The warning event triggers whenever a warning is issued by a daemon. This is meant only to be monitored by the _display program. Ideally this would be a notify message, but using an event hook fails gracefully if a warning is generated before _display is registered with the kernel. Specified as 11 <slot> <message>, e.g. "11 2 6" displays 'RADIATION DANGER' in slot 2; see interface.consts.h.lsl for list.
 #define EVENT_WARNING				0x00b
+
+// The "working" events aren't meant to be hooked by any programs, but rather used as a reliable way to tell the scheduler daemon itself when to show the working badge. They are called as "16 <text>", and "17 <text>", respectively. The <text> on the begin and end must match, and will be visible to the user. Convenience macros are defined in scheduler.h.lsl.
+#define EVENT_WORKING_BEGIN			0x010
+#define EVENT_WORKING_END			0x011
 
 /*
   MODE DEFINITIONS

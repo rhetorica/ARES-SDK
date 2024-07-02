@@ -96,6 +96,8 @@ MESSAGES
 	<label> is a freeform text label that describes the volume.
 	
 	If no access is granted, the device should send the "denied" command.
+	
+	In normal operation the system will send a "stat" message for the special file "*" after access is granted.
 
 
 <handle> disconnect
@@ -110,6 +112,8 @@ MESSAGES
 	system -> storage
 	
 	The system wants to know the size and type of a file. Please send it in reply with the message below.
+	
+	If <filename> is "*", the system is inquiring about the current (root) directory.
 
 
 <handle> stat <amount> <type> <desc>

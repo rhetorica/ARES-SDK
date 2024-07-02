@@ -48,10 +48,14 @@
 	#define query_hooks() kernel(SIGNAL_QUERY_HOOKS, "")
 	#define hook_events(...) kernel(SIGNAL_HOOK_EVENT, PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
 	#define unhook_events(...) kernel(SIGNAL_UNHOOK_EVENT, PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
+	#define begin_working(_reason) kernel(SIGNAL_TRIGGER_EVENT, (string)EVENT_WORKING_BEGIN + " " + (_reason))
+	#define end_working(_reason) kernel(SIGNAL_TRIGGER_EVENT, (string)EVENT_WORKING_END + " " + (_reason))
 #else
 	#define query_hooks() tell(DAEMON, C_SCHEDULER, E_SIGNAL_QUERY_HOOKS + PROGRAM_NAME)
 	#define hook_events(...) tell(DAEMON, C_SCHEDULER, E_SIGNAL_HOOK_EVENT + PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
 	#define unhook_events(...) tell(DAEMON, C_SCHEDULER, E_SIGNAL_UNHOOK_EVENT + PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
+	#define begin_working(_reason) tell(DAEMON, C_SCHEDULER, E_SIGNAL_TRIGGER_EVENT + (string)EVENT_WORKING_BEGIN + " " + (_reason))
+	#define end_working(_reason) tell(DAEMON, C_SCHEDULER, E_SIGNAL_TRIGGER_EVENT + (string)EVENT_WORKING_END + " " + (_reason))
 #endif
 
 // create a timer (interval must be an integer)
