@@ -171,7 +171,7 @@
 #define format_percentage(xxx) ((string)((integer)((xxx) * 100)) + "%")
 
 // string format_float(float f): truncates a float to the specified precision after the decimal point, e.g. format_float(0.010999, 3) == "0.010"; always rounds toward 0
-#define format_float(_number, _places) llGetSubString( (string) _number, 0, llSubStringIndex( (string) _number, ".") + _places )
+#define format_float(_number, _places) llGetSubString( (string) (_number), 0, llSubStringIndex( (string) (_number), ".") + _places )
 
 
 // list list_union(list x, list y): returns a list containing the elements of list x, followed by any elements of list y that did not appear in list x
