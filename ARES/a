@@ -41,7 +41,7 @@
 #define ARES
 
 // version that OS components will report:
-#define ARES_VERSION "0.5.1"
+#define ARES_VERSION "0.5.2"
 #define ARES_VERSION_TAGS "beta 3"
 
 // copyright year for the OS:
