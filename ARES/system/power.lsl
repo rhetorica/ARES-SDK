@@ -266,7 +266,6 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			string ann;
 			
 			if(sys == "drainprotect") {
-				
 				list opt_de = ["disabled", "enabled"];
 				list opt_standard = ["off", "on", "toggle"];
 			
@@ -503,7 +502,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			string status = gets(argv, ci + 1);
 			// echo("POWER notify: " + cmd + " " + status);
 			
-			if(cmd == "wifi") {
+			if(cmd == "charged") {
+				// integer charge_bootable = (status == "y");
+				// no code required here - will occur automatically
+				
+			} else if(cmd == "wifi") {
 				// block non-attached devices
 				wifi_state = (status == "y");
 				setdbl("status", ["remote-device"], (string)wifi_state);
