@@ -856,11 +856,14 @@ default {
 				#ifdef HOOK_CONDITION
 					linked(LINK_THIS, 0, "broken", "");
 				#endif
-				if(timer_tp == 0
-					#ifndef OVERRIDE_HATCH
-						&& timer_close_hatch == 0
+				if(
+					#ifndef OVERRIDE_TP
+						timer_tp == 0 &&
 					#endif
-				&& timer_spark == 0) {
+					#ifndef OVERRIDE_HATCH
+						timer_close_hatch == 0 &&
+					#endif
+					timer_spark == 0) {
 					llSetTimerEvent(0.25);
 				}
 			} else if(m == "fixed") {
