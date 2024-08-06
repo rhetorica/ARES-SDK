@@ -58,7 +58,7 @@
 #define effector_restrict(_rule_name, _rule_value) e_call(C_EFFECTOR, E_SIGNAL_CREATE_RULE, _rule_name + " " + _rule_value)
 // effector_release(rule-name): releases an RLV restriction (see details at start of effector.h.lsl); if the rule name ends in "*" then all rules matching the prefix will be removed, e.g. "power_*" to remove all rules starting with "power_"
 #define effector_release(_rule_name) e_call(C_EFFECTOR, E_SIGNAL_DELETE_RULE, _rule_name)
-// this just sticks "@" on the front:
+// this just sticks "@" on the front, but the message comes from the daemon ring:
 #define effector_rlv(_rule) e_call(C_EFFECTOR, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " effector rlv " + _rule)
 // teleports to region and (vector) position; if _external is TRUE, doesn't consume power or play fx
 #define effector_teleport(_region, _position, _external) e_call(C_EFFECTOR, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " effector teleport " + (string)(_external) + "|" + (string)avatar + "|" + (_region) + "|" + (string)(_position))
@@ -68,9 +68,12 @@
 // play_sound(): play a sound specified by UUID
 // announce(): play an announcer voice sample, as defined in the LSD section 'announcer'
 
-#define play_sound(_name) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector sound " + _name)
-#define daemon_play_sound(_name) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector sound " + _name)
-#define announce(_announcement) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector announce " + _announcement)
-#define daemon_announce(_announcement) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector announce " + _announcement)
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define play_sound(_name) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector sound " + _name)
+	#define daemon_announce(_announcement) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector announce " + _announcement)
+#else
+	#define play_sound(_name) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector sound " + _name)
+	#define announce(_announcement) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector announce " + _announcement)
+#endif
 
 #endif // _ARES_EFFECTOR_H_
