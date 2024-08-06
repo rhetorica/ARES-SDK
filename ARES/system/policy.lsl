@@ -42,11 +42,12 @@ list opt_af = ["allowed", "forbidden"];
 list opt_standard = ["off", "on", "toggle"];
 
 integer C_LIGHT_BUS = NOWHERE;
+integer initialized = FALSE;
 
 main(integer src, integer n, string m, key outs, key ins, key user) {
 	@restart_main;
 	if(n == SIGNAL_INVOKE) {
-		list argv = split(m, " ");
+		list argv = splitnulls(m, " ");
 		integer argc = count(argv);
 		string msg = "";
 		
@@ -57,6 +58,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		
 		if(argc == 1) {
 			string policies = llLinksetDataRead("policy");
+			integer policy_group = (integer)getjs(policies, ["group", "enabled"]);
 				
 			msg = "Current policy status\n"
 			+ "\nChat release: "
@@ -72,7 +74,20 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			+ "\nAuto-Lock: "
 				+ gets(opt_de, (integer)getjs(policies, ["autolock", "enabled"]))
 			+ "\nSafety bolts: "
-				+ gets(opt_de, (integer)getdbl("status", ["bolts"]));
+				+ gets(opt_de, (integer)getdbl("status", ["bolts"]))
+			+ "\nGroup/role: "
+				+ gets(opt_de, policy_group);
+			
+			if(policy_group) {
+				string policy_group_name = getjs(policies, ["group", "name"]);
+				string policy_group_role = getjs(policies, ["group", "role"]);
+				if(policy_group_name == JSON_INVALID)
+					policy_group_name = "(none)";
+				if(policy_group_role == JSON_INVALID)
+					policy_group_role = "(none)";
+				msg += " (" + policy_group_name + "/" + policy_group_role + ")";
+			}
+			
 		} else if(action == "help") {
 			string selfname = gets(argv, 0);
 			msg = "Syntax:\n";
@@ -92,8 +107,91 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				selfname + " lock: lock local commands and menu, preventing access\n" +
 				selfname + " unlock <password>: unlock\n" +
 				selfname + " password <password>: change lock password\n";
+			llSleep(0.5);
+			print(outs, user, msg);
+			msg =
+				selfname + " group [on|off|toggle]: control group enforcement\n" +
+				selfname + " group name <name>|none: set name of mandatory group\n" +
+				selfname + " group role <name>|none: set role in mandatory group\n";
 		} else if(action == "beacon") {
 			msg = "The distress beacon is not yet implemented.";
+		} else if(action == "group") {
+			integer policy_group = (integer)getdbl("policy", ["group", "enabled"]);
+			integer last_group_change_time = (integer)getdbl("policy", ["group", "time"]);
+			string policy_group_name = getdbl("policy", ["group", "name"]);
+			string policy_group_role = getdbl("policy", ["group", "role"]);
+			integer act = index(opt_standard, target);
+			integer change = 0;
+			if(~act) {
+				if(act == 0) {
+					policy_group = 0;
+				} else if(act == 1) {
+					policy_group = 1;
+				} else if(act == 2) {
+					policy_group = !policy_group;
+				}
+				setdbl("policy", ["group", "enabled"], (string)policy_group);
+				change = 1;
+				msg = "Updated group enforcement state.\n";
+			} else if(target == "name") {
+				policy_group_name = concat(delrange(argv, 0, 2), " ");
+				if(policy_group_name == "none") {
+					if(policy_group_name != JSON_INVALID) {
+						policy_group_name = JSON_INVALID;
+						deletedbl("policy", ["group", "name"]);
+						change = 1;
+					}
+				} else {
+					setdbl("policy", ["group", "name"], policy_group_name);
+					change = 1;
+				}
+				msg = "Updated group name.\n";
+			} else if(target == "role") {
+				policy_group_role = concat(delrange(argv, 0, 2), " ");
+				if(policy_group_role == "none") {
+					if(policy_group_role != JSON_INVALID) {
+						policy_group_role = JSON_INVALID;
+						deletedbl("policy", ["group", "role"]);
+						change = 1;
+					}
+				} else {
+					setdbl("policy", ["group", "role"], policy_group_role);
+					change = 1;
+				}
+				msg = "Updated group role.\n";
+			}
+			
+			msg += "Current group policy status: " + gets(opt_de, policy_group)
+			 + "\nLast changed: " + (string)last_group_change_time
+			 + "\nMandatory group name: ";
+			
+			if(policy_group_name == JSON_INVALID)
+				msg += "(none set)";
+			else
+				msg += policy_group_name;
+			
+			msg += "\nMandatory group role: ";
+			
+			if(policy_group_role == JSON_INVALID)
+				msg += "(none set)";
+			else
+				msg += policy_group_role;
+			
+			msg += "\nPlease note that updates to group are heavily throttled and may take some time to apply.";
+			
+			if(change) {
+				integer now = llGetUnixTime();
+				if(!policy_group) {
+					effector_release("policy_group");
+				} else if(now - last_group_change_time < 120) {
+					msg += "\nQueueing change.";
+					set_timer("group-change", ((last_group_change_time + 120) - now));
+				} else if(policy_group) {
+					effector_restrict("policy_group", "setgroup=?,setgroup:" + policy_group_name + ";" + policy_group_role + "=force");
+					setdbl("policy", ["group", "time"], (string)now);
+				}
+			}
+		
 		} else if(action == "lock") {
 			string password = getdbl("policy", ["password"]);
 			if(password == "" || password == JSON_INVALID) {
@@ -327,6 +425,18 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			} else {
 				set_timer("autolock", 0); // clear any errant messages
 			}
+		} else if(m == "group-change") {
+			set_timer("group-change", 0);
+			integer policy_group = (integer)getdbl("policy", ["group", "enabled"]);
+			if(policy_group) {
+				string policy_group_name = getdbl("policy", ["group", "name"]);
+				string policy_group_role = getdbl("policy", ["group", "role"]);
+				effector_restrict("policy_group", "setgroup=?,setgroup:" + policy_group_name + ";" + policy_group_role + "=force");
+				setdbl("policy", ["group", "time"], (string)llGetUnixTime());
+				echo("Group change policy now in effect.");
+			} else {
+				effector_release("policy_group");
+			}
 		}
 	} else if(n == SIGNAL_INIT) {
 		#ifdef DEBUG
@@ -347,6 +457,32 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		if((integer)getdbl("policy", ["autolock", "enabled"]))
 			set_timer("autolock", time); // set next time
 		
+		set_timer("group-change", 0);
+		integer policy_group = (integer)getdbl("policy", ["group", "enabled"]);
+		if(policy_group) {
+			string policy_group_name = getdbl("policy", ["group", "name"]);
+			string policy_group_role = getdbl("policy", ["group", "role"]);
+			effector_restrict("policy_group", "setgroup=?,setgroup:" + policy_group_name + ";" + policy_group_role + "=force");
+			setdbl("policy", ["group", "time"], (string)llGetUnixTime());
+		} else {
+			effector_release("policy_group");
+		}
+		
+		hook_events([EVENT_ON_REZ]);
+		
+		integer policy_release = (integer)getdbl("policy", ["release"]);
+		notify_program("input release " + gets(["y", "n"], policy_release), avatar, NULL_KEY, avatar);
+		
+		initialized = TRUE;
+	} else if(n == SIGNAL_EVENT) {
+		integer e = (integer)m;
+		if(e == EVENT_ON_REZ) {
+			if(!initialized) {
+				// this should never happen, but hooking EVENT_ON_REZ is still helpful for ensuring SIGNAL_INIT is triggered anyway
+				n = SIGNAL_INIT;
+				jump restart_main;
+			}
+		}
 	} else if(n == SIGNAL_UNKNOWN_SCRIPT) {
 		echo("[" + PROGRAM_NAME + "] failed to run '" + m + "' (kernel could not find the program specified)");
 	} else {
