@@ -99,71 +99,83 @@ string f_replace(string message, string dictionary_name) {
 		echo("[filter] warning: replacement dictionary " + dictionary_name + " does not exist. See 'help replace'");
 		return message;
 	}
-
-	list EOS = [".", "?", "!"];
-	list separators = EOS + [" ", ",", "\"", "'", "-", ":", ";", "(", ")", "*", "~", "/", "@", "–", "—"];
-	list tokens = llParseString2List(message, [], separators); // not sure if this would be better as llParseStringKeepNulls()
-	list cases;
-	list ltokens;
-	integer tmax = count(tokens);
-
-	list headwords = jskeys(dictionary);
-	integer ti = 0;
-	while(ti < tmax) {
-		string t = gets(tokens, ti);
-		string lt = llToLower(t);
-		ltokens += lt;
-
-		integer original_case;
-
-		if(lt == t) {
-			original_case = 0; // plain
-		} else if(t == "I") {
-			original_case = 3; // unique
-		} else if(delstring(lt, 0, 0) == delstring(t, 0, 0)) {
-			original_case = 1; // first-letter
-		} else if(llToUpper(t) == t) {
-			original_case = 2; // all-caps
+	
+	string out = "";
+	integer limit = strlen(message);
+	integer sentence_start = TRUE;
+	string word;
+	while(limit >= 0) { // one extra iteration ensures last word is emitted
+		integer c = llOrd(message, 0);
+		string cs = llChar(c);
+		if(c == 0x27 /* ' */ || llToLower(cs) != llToUpper(cs)) {
+			word += cs;
+			// echo("word includes " + cs);
 		} else {
-			original_case = 3;
+			// echo("separator " + cs);
+			integer c_len = strlen(word);
+			if(c_len > 0) {
+				while(llOrd(word, 0) == 0x27) { // '
+					out += "'";
+					word = delstring(word, 0, 0);
+					c_len -= 1;
+				}
+				string suffix = "";
+				while(llOrd(word, LAST) == 0x27) { // '
+					suffix = "'" + suffix;
+					word = delstring(word, LAST, LAST);
+					c_len -= 1;
+				}
+				
+				if(c_len > 0) {
+					string replacement = word;
+					string new;
+					if((new = getjs(dictionary, [word])) != JSON_INVALID) {
+						replacement = new; // exact capitalization match
+					} else if((new = getjs(dictionary, [llToLower(word)])) != JSON_INVALID) {
+						if(word == llToUpper(word) && !(c_len == 1 && sentence_start) && word != "I") {
+							//echo(word + " is type 0");
+							// word was entered in all caps and isn't just a one-letter word at the start of the sentence or "I"
+							replacement = llToUpper(new);
+						} else if(word == "I" && !sentence_start) {
+							// echo(word + " is type 1");
+							// avoid transferring first-letter capitalization from "I" in the middle of a sentence:
+							replacement = new;
+						} else if(substr(word, 0, 0) == llToUpper(substr(word, 0, 0))) {
+							// echo(word + " is type 2");
+							// word began with a capital letter (including "I" at the start of a sentence):
+							replacement = llToUpper(substr(new, 0, 0)) + substr(new, 1, LAST);
+						} else {
+							// echo(word + " is type 3");
+							replacement = new;
+						}
+					}
+					// echo("emitting word " + replacement);
+					out += replacement + suffix;
+					/* if(sentence_start)
+						echo("no longer sentence start after emitting " + replacement + " at position " + (string)i); */
+					sentence_start = FALSE;
+				} else {
+					out += suffix;
+				}
+				word = "";
+			}
+			
+			if(
+				((c == 33 || c == 65 || c == 46) && llOrd(message, 1) == 32)  // ! ? . followed by space
+			|| (c == 10)) { // line feed
+				sentence_start = TRUE;
+				// echo("Sentence start at position " + (string)i);
+			}
+			
+			// echo("appending characters " + cs);
+			out += cs;
 		}
 		
-		integer di = index(headwords, lt);
-		if(~di) {
-			string replacement = getjs(dictionary, [lt]);
-			if(llToLower(replacement) == replacement) { // only alter case for lower-case replacements
-				if(original_case == 3) {
-					string prequel = gets(ltokens, ti - 2);
-					if(contains(EOS, prequel) || prequel == "") // are we exactly two tokens after the end of a sentence?
-						original_case = 1;
-					else
-						original_case = 0;
-				}				
-
-				if(original_case == 1) {
-					replacement = llToUpper(substr(replacement, 0, 0)) + delstring(replacement, 0, 0);
-				} else if(original_case == 2) {
-					replacement = llToUpper(replacement);
-				}
-			} else if(original_case == 2) { // actually, let's pass on all-caps so shouting looks right
-				replacement = llToUpper(replacement);
-			}
-			tokens = alter(tokens, [replacement], ti, ti);
-		}
-		++ti;
+		message = delstring(message, 0, 0);
+		--limit;
 	}
 	
-	message = concat(tokens, "");
-	integer hwi = count(headwords);
-	while(hwi--) {
-		string hw = gets(headwords, hwi);
-		if(~strpos(hw, "'")) {
-			string replacement = getjs(dictionary, [hw]);
-			message = replace(message, hw, replacement);
-		}
-	}
-	
-	return message;
+	return out;
 }
 
 string f_slang(string message, string flags) {
