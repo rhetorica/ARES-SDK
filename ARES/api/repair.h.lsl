@@ -39,6 +39,19 @@
 
 // **** repair daemon ****
 
+/* Standard community damage types proposed by Nexii Malthus: https://wiki.secondlife.com/wiki/Category:LSL_Combat2
+*/
+
+// Healing (organics only):
+#define DAMAGE_TYPE_MEDICAL 100
+// Healing (machines only):
+#define DAMAGE_TYPE_REPAIR 101
+#define DAMAGE_TYPE_EXPLOSIVE 102
+#define DAMAGE_TYPE_CRUSHING 103
+#define DAMAGE_TYPE_ANTI_ARMOR 104
+// Organics only:
+#define DAMAGE_TYPE_SUFFOCATION 105
+
 /* deal_damage(): deal ATOS damge to the unit
 		_type: one of: "projectile", "crash", "heat", "cold", "special"
 		_amount: number of HP to remove; multiply by 4 for projectile and crash damage; may be affected by shields

@@ -93,6 +93,8 @@ string PROGRAM_NAME = "program";
 #define E_WARRIOR			 "!,"
 #define C_STORAGE      0x7a00200c
 #define E_STORAGE			 "!-"
+#define C_THERMAL	   0x7a00200d
+#define E_THERMAL			 "!."
 
 #define C_PROGRAM_BASE 0x7a003000
 
@@ -254,9 +256,15 @@ string E_PROGRAM_NUMBER = "!!";
 #define SIGNAL_RECHECK_MODULE		0xf17
 #define E_SIGNAL_RECHECK_MODULE		"]8"
 
-// special message for combat performance:
+// special messages for combat:
 #define SIGNAL_COLLISION			0xf18
 #define E_SIGNAL_COLLISION			"]9"
+
+#define SIGNAL_DAMAGE				0xf1a
+#define E_SIGNAL_DAMAGE				"];"
+
+#define SIGNAL_DEATH				0xf1b
+#define E_SIGNAL_DEATH				"]<"
 
 #define SIGNAL_INVENTORY_DROP		0xf19
 #define E_SIGNAL_INVENTORY_DROP		"]:"
