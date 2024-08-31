@@ -91,6 +91,20 @@ position_all(integer only_devices) {
 		pixel_scale = 1.0 / screen_height;
 	}
 	
+	{
+		color_slot = (integer)getdbl("interface", ["color"]);
+		
+		if(color_slot == 0)
+			color = ONES;
+		else
+			color = str2vec(getdbl("id", ["color", color_slot - 1]));
+		
+		integer cbi = 2;
+		if(color_slot - 1== 2)
+			cbi = 3;
+		color_bad = str2vec(getdbl("id", ["color", cbi]));
+	}
+	
 	/* DEVICES */
 	#define MAX_DEVICES 16
 	// string devices = llLinksetDataRead("device");
@@ -553,9 +567,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		screen_height_mlook = (integer)getjs(s_interface, ["height-mlook"]);
 		if(!screen_height_mlook) screen_height_mlook = 1027;
 		
-		color_slot = (integer)getjs(s_interface, ["color"]);
+		// color_slot = (integer)getjs(s_interface, ["color"]);
 	}
-	
+	/*
 	if(color_slot == 0)
 		color = ONES;
 	else
@@ -564,7 +578,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	integer cbi = 2;
 	if(color_slot - 1== 2)
 		cbi = 3;
-	color_bad = str2vec(getdbl("id", ["color", cbi]));
+	color_bad = str2vec(getdbl("id", ["color", cbi])); */
 	
 	{
 		string s_display = llLinksetDataRead("display");
