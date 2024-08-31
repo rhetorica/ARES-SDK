@@ -110,7 +110,9 @@ string expression(list tokens) {
 		return (string)value;
 }
 
+#ifdef PIPES
 string pipe_queue = "{}"; // {handle:[[commands], outs, ins, user, rc, [pipe-keys]]} - will replace script handle
+#endif
 
 integer process_input(key outs, key handle, key user, string cml, integer in_script) {
 	@internal_restart;
@@ -213,6 +215,7 @@ integer process_input(key outs, key handle, key user, string cml, integer in_scr
 		prog = gets(cargv, 0);
 	}
 	
+	#ifdef PIPES
 	// string pipe_queue; // {handle:[[commands], outs, ins, user, rc]} - will replace script handle
 	
 	cml = replace(cml, "\\|", NAK);
@@ -268,6 +271,7 @@ integer process_input(key outs, key handle, key user, string cml, integer in_scr
 		cargv = splitnulls(cml, " ");
 		prog = gets(cargv, 0);
 	}
+	#endif
 	
 	string filetype;
 	integer invtype;
@@ -609,11 +613,13 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		// echo("[_exec] receipt: " + m);
 		ins = substr(m, 0, 35);
 		
+		#ifdef PIPES
 		string pipestruct = getjs(pipe_queue, [ins]);
 		if(pipestruct != JSON_INVALID) {
 			echo("[_exec] finished pipe procedure " + (string)ins);
 			pipe_queue = setjs(pipe_queue, [ins], JSON_DELETE);
 		}
+		#endif
 		
 		if(_mode & MODE_ACCEPT_DONE && ins == script_handle) {
 			continue_script();
@@ -659,6 +665,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		list argv = splitnulls(m, " ");
 		string action = gets(argv, 1);
 		
+		#ifdef PIPES
 		if(action == "pipe") {
 			#ifdef DEBUG
 			echo("exec: pipe created (" + (string)ins + "): " + m);
@@ -677,11 +684,13 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			} else {
 				echo("exec: unknown pipe (struct not found): " + m);
 			}
-		} else if(action == "file") { // file data available
+		} else 
+		#endif
+		if(action == "file") { // file data available
 			if(ins == file_pipe) {
 				string file_buffer;
 				pipe_read(file_pipe, file_buffer);
-				integer read_length = 10;
+				integer read_length = 4;
 				
 				if(file_length != NOWHERE) {
 					if(file_unit == "b")
