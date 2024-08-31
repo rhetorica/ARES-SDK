@@ -659,6 +659,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				// no keys = tell device to send update to all devices
 				e_call(C_REPAIR, E_SIGNAL_CALL, (string)outs + " " + (string)user + " repair color");
 				e_call(C_STATUS, E_SIGNAL_CALL, (string)outs + " " + (string)user + " status color");
+				e_call(C_THERMAL, E_SIGNAL_CALL, (string)outs + " " + (string)user + " thermal color");
 			}
 		}
 		

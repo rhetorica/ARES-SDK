@@ -100,7 +100,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						if(status_persona == "default")
 							status_persona = "";
 						
-						e_call(C_STATUS, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " status persona " + status_persona);
+						e_call(C_THERMAL, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " thermal persona " + status_persona);
 						
 						string rlv_path = getdbl("persona", ["path"]);
 						effector_rlv("detachall:" + rlv_path + "=force");

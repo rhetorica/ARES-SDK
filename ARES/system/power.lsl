@@ -170,6 +170,8 @@ apply_state(integer update, integer report_state) {
 		llLinksetDataWrite("status", s_status);
 		
 		e_call(C_STATUS, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " status update");
+		llSleep(0.25);
+		e_call(C_THERMAL, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " thermal update");
 	}
 	
 	// task_end(ek);
@@ -258,6 +260,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		if(argc == 1) {
 			apply_state(0, 1);
 			e_call(C_STATUS, E_SIGNAL_CALL, (string)outs + " " + (string)user + " status power");
+			llSleep(0.022);
+			e_call(C_THERMAL, E_SIGNAL_CALL, (string)outs + " " + (string)user + " thermal power");
 		} else {
 			string sys = gets(argv, 1);
 			string act = gets(argv, 2);
