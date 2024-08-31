@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.2.0"
+#define CLIENT_VERSION "1.3.0"
 #define CLIENT_VERSION_TAGS "release"
 
 #define PUSH(_list, _item) _list += (list)(_item)
@@ -56,8 +56,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		integer argc = count(argv);
 		string msg;
 		if(argc == 1) {
-			msg = "Usage: " + PROGRAM_NAME + " [-x|-d|-e] <calculation>\n    -x: Return result in hexadecimal\n    (input hex values as 0xff)\n    -d: Decode from ARES base64\n    -e: Encode to ARES base64\n    -r [[<min>] <max>]: generate a random integer between <min> (or 0) and (<max> - 1); if no bounds are specified, generates a random float between 0.0 and 1.0\n\nSupported symbols: " + concat(SYMBOLS, ", ");
+			msg = "Usage: " + PROGRAM_NAME + " [-x|-d|-e|-f] <calculation>\n    -x: Return result in hexadecimal\n    (input hex values as 0xff)\n    -d: Decode from ARES base64\n    -e: Encode to ARES base64\n    -f: Finds prime factors of the result\n    -r [[<min>] <max>]: generate a random integer between <min> (or 0) and (<max> - 1); if no bounds are specified, generates a random float between 0.0 and 1.0\n\nSupported symbols: " + concat(SYMBOLS, ", ");
 		} else {
+			integer factor_result;
 			integer hex_output;
 			integer ARES_decode;
 			integer ARES_encode;
@@ -76,6 +77,12 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				argv = delitem(argv, 1);
 				#ifdef DEBUG
 				echo("hexadecimal output enabled if result is integer");
+				#endif
+			} else if(first == "-f") {
+				factor_result = 1;
+				argv = delitem(argv, 1);
+				#ifdef DEBUG
+				echo("result will be converted to integer and factored");
 				#endif
 			} else if(first == "-d") {
 				ARES_decode = 1;
@@ -437,10 +444,42 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				/* #ifdef DEBUG
 				echo("hex output? " + (string)hex_output + "; final class = " + (string)final_class);
 				#endif*/
-				if(substr(final_text, 0, 1) == "0x")
+				if(substr(final_text, 0, 1) == "0x") {
 					final_text = (string)((integer)final_text);
+					final_class = C_INTEGER;
+				}
 				
-				if(hex_output && final_class == C_INTEGER) {
+				if(factor_result) {
+					integer heap = (integer)final_text;
+					list results;
+					if(heap < 0) {
+						results = [-1];
+						heap = llAbs(heap);
+					}
+					integer root_limit = llCeil(llSqrt((float)heap));
+					integer i = 2;
+					while(i < root_limit) {
+						if(heap % i == 0) {
+							results += i;
+							heap = heap / i;
+							if(heap < root_limit)
+								root_limit = heap;
+							i = 1;
+						}
+						++i;
+					}
+					
+					results += heap;
+					
+					results = llListSort(results, 1, TRUE);
+					/*
+					if(hex_output) {
+						i = count(results);
+						while(i--)
+							results = alter(results, ["0x" + hex(geti(results, i))], i, i);
+					} */
+					msg = concat(results, " ");
+				} else if(hex_output && final_class == C_INTEGER) {
 					msg = "0x" + hex((integer)final_text);
 				} else if(ARES_encode && final_class == C_INTEGER) {
 					integer v = (integer)final_text;
