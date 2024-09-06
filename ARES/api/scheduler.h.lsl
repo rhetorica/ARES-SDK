@@ -48,9 +48,9 @@
 	#define query_hooks() kernel(SIGNAL_QUERY_HOOKS, "")
 	#define hook_events(...) kernel(SIGNAL_HOOK_EVENT, PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
 	#define unhook_events(...) kernel(SIGNAL_UNHOOK_EVENT, PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
-	#define begin_working(_reason) kernel(SIGNAL_TRIGGER_EVENT, (string)EVENT_WORKING_BEGIN + " " + (_reason))
-	#define end_working(_reason) kernel(SIGNAL_TRIGGER_EVENT, (string)EVENT_WORKING_END + " " + (_reason))
-	#define trigger_event(...) kernel(SIGNAL_TRIGGER_EVENT, concat(__VA_ARGS__, " "))
+	#define begin_working(_reason) system(SIGNAL_TRIGGER_EVENT, (string)EVENT_WORKING_BEGIN + " " + (_reason))
+	#define end_working(_reason) system(SIGNAL_TRIGGER_EVENT, (string)EVENT_WORKING_END + " " + (_reason))
+	#define trigger_event(...) system(SIGNAL_TRIGGER_EVENT, concat(__VA_ARGS__, " "))
 #else
 	#define query_hooks() tell(DAEMON, C_SCHEDULER, E_SIGNAL_QUERY_HOOKS + PROGRAM_NAME)
 	#define hook_events(...) tell(DAEMON, C_SCHEDULER, E_SIGNAL_HOOK_EVENT + PROGRAM_NAME + "," + concat(__VA_ARGS__, ","))
