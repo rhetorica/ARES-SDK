@@ -6,7 +6,7 @@
  *  
  * =========================================================================
  *
- *  YS-712 XSU Hardware Driver
+ *  VAR/I Analyte Hardware Driver
  *
  *  This program is covered under the terms of the ARES Software Copyright
  *  License, Section 3 (ASCL-iii). It may be redistributed or used as the

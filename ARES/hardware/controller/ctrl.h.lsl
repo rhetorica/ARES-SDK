@@ -12,3 +12,4 @@
 #define SCREEN_REVENANT 6
 #define SCREEN_AIDE 7
 #define SCREEN_DAX3 8
+#define SCREEN_DAYBREAK 9

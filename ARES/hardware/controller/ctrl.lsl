@@ -65,6 +65,7 @@
 	SCREEN_REVENANT - projected hybrid display with accessory positioning HUD
 	SCREEN_DAX3 - cylindrical image is on the outside of a tube prim with path cut 0.3625 to 0.6375 (centered at 0.5)
 	SCREEN_AEGIS - concave cylindrical display and lever-action hinge
+	SCREEN_DAYBREAK - only the background prim exists; non-interactive
 */
 
 #if SCREEN_TYPE == SCREEN_SUPERVISOR
@@ -243,6 +244,10 @@ float lubricant = 1.0;
 integer opo;
 integer obo;
 
+#ifndef SOCKET_NAME
+	#define SOCKET_NAME "socket"
+#endif
+
 integer FAN;
 integer POWER_GAUGE;
 integer RATE_GAUGE;
@@ -269,7 +274,7 @@ integer door_open;
 
 integer soothe;
 
-#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE
+#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE || SCREEN_TYPE == SCREEN_DAYBREAK
 // on these screen types only, suppress beep from displaying menu after session start
 integer silence_menu;
 #endif
@@ -335,7 +340,11 @@ integer timer_spark;
 
 #define play_sound(_name) llTriggerSound(getjs(sounds, [_name]), (float)getjs(sounds, ["volume"]))
 
-#if SCREEN_TYPE != SCREEN_NONE
+#if SCREEN_TYPE == SCREEN_DAYBREAK
+clear_screen(integer partial) {
+
+}
+#elif SCREEN_TYPE != SCREEN_NONE
 clear_screen(integer partial) {
 	// #define ALIGN_TEXT
 	integer pmax = llGetNumberOfPrims();
@@ -753,7 +762,7 @@ default {
 					operate_door();
 				}
 				#endif
-			#if SCREEN_TYPE != SCREEN_NONE
+			#if (SCREEN_TYPE != SCREEN_NONE) && (SCREEN_TYPE != SCREEN_DAYBREAK)
 			} else if(part == "text" && power_on) {
 				list ps = llParseString2List(gets(getp(pi, [PRIM_DESC]), 0), ["T", ","], []);
 				integer row = (integer)gets(ps, 0);
@@ -895,7 +904,7 @@ default {
 				tell(system, c, "conf-get interface.sound");
 				tell(system, c, "conf-get hardware.controller");
 				#ifndef OVERRIDE_TOUCH
-					#if SCREEN_TYPE != SCREEN_NONE
+					#if SCREEN_TYPE != SCREEN_NONE && SCREEN_TYPE != SCREEN_DAYBREAK
 						tell(system, c, "menu start " + (string)avatar); // menu <session> get|touch|... [<button>] <uuid> 
 					#endif
 				#endif
@@ -1238,8 +1247,13 @@ default {
 							linked(LINK_THIS, 0, "menu-close", "");
 						#endif
 						clear_screen(FALSE);
-						#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE
-							setp(SCREEN, [PRIM_TEXTURE, ALL_SIDES, llGetInventoryKey("m_boot"), ONES, ZV, 0
+						#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE || SCREEN_TYPE == SCREEN_DAYBREAK
+							setp(SCREEN, [PRIM_TEXTURE, ALL_SIDES, llGetInventoryKey("m_boot"), ONES, ZV, 
+							#if SCREEN_TYPE == SCREEN_DAYBREAK
+								PI_BY_TWO
+							#else
+								0
+							#endif
 							#ifdef FULL_COLOR_BOOT
 							, PRIM_COLOR, ALL_SIDES, ONES, 1
 							#endif
@@ -1284,7 +1298,7 @@ default {
 							]);
 						#endif
 					} else {
-						#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE
+						#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE || SCREEN_TYPE == SCREEN_DAYBREAK
 							if(silence_menu) {
 								silence_menu = 0;
 							} else {
@@ -1294,8 +1308,13 @@ default {
 							play_sound("go");
 						#endif
 						clear_screen(TRUE);
-						#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE
-							setp(SCREEN, [PRIM_TEXTURE, ALL_SIDES, llGetInventoryKey("m_main"), ONES, ZV, 0
+						#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE || SCREEN_TYPE == SCREEN_DAYBREAK
+							setp(SCREEN, [PRIM_TEXTURE, ALL_SIDES, llGetInventoryKey("m_main"), ONES, ZV, 
+							#if SCREEN_TYPE == SCREEN_DAYBREAK
+								PI_BY_TWO
+							#else
+								0
+							#endif
 							#ifdef FULL_COLOR_BOOT
 							, PRIM_COLOR, ALL_SIDES, c4, 1
 							#endif
@@ -1344,50 +1363,52 @@ default {
 					}
 					#endif
 					
-					if(menu_name != "end"
-					#if SCREEN_TYPE == SCREEN_SUPERVISOR || SCREEN_TYPE == SCREEN_PLANAR || SCREEN_TYPE == SCREEN_DAX3 || SCREEN_TYPE == SCREEN_AEGIS || SCREEN_TYPE == SCREEN_NIGHTFALL
-						// hide text from the boot screen?
-						&& menu_name != "boot"
-					#endif
-						) {
-						
-						list lines = splitnulls(m, "\n");
-						string l1 = gets(lines, 1);
-						#if SCREEN_TYPE == SCREEN_PLANAR || defined(ALTER_MENU_IDENTIFIER)
-							if(substr(l1, 0, 31) == "               Command Interface")
-								l1 = "ARES" + substr(l1, 14, LAST);
+					#if SCREEN_TYPE != SCREEN_DAYBREAK
+						if(menu_name != "end"
+						#if SCREEN_TYPE == SCREEN_SUPERVISOR || SCREEN_TYPE == SCREEN_PLANAR || SCREEN_TYPE == SCREEN_DAX3 || SCREEN_TYPE == SCREEN_AEGIS || SCREEN_TYPE == SCREEN_NIGHTFALL
+							// hide text from the boot screen?
+							&& menu_name != "boot"
 						#endif
-						#ifdef ALL_CAPS
-							variatype(llToUpper(l1), TEXT_START, 12);
-							variatype(llToUpper(gets(lines, 3)), TEXT_START + 6, 12);
-							variatype(llToUpper(gets(lines, 2)), TEXT_START + 60, 6);
-						#else
-							variatype(l1, TEXT_START, 12);
-							variatype(gets(lines, 3), TEXT_START + 6, 12);
-							variatype(gets(lines, 2), TEXT_START + 60, 6);
-						#endif
-						integer lmax = button_count = count(lines) - 4;
-						integer li = 0;
-						integer max_width = 6;
-						
-						if(lmax > 16)
-							max_width = 2;
-						else if(lmax > 8)
-							max_width = 3;
-						
-						// integer max_width = 6 / (integer)(lmax / 8);
-						
-						while(li < lmax) {
-							integer li_y = li % 8 + 2;
-							integer li_col = (li >> 3) * max_width;
-							#ifdef ALL_CAPS
-								variatype(llToUpper(gets(lines, li + 4)), TEXT_START + (li_y * 6 + li_col), max_width);
-							#else
-								variatype(gets(lines, li + 4), TEXT_START + (li_y * 6 + li_col), max_width);
+							) {
+							
+							list lines = splitnulls(m, "\n");
+							string l1 = gets(lines, 1);
+							#if SCREEN_TYPE == SCREEN_PLANAR || defined(ALTER_MENU_IDENTIFIER)
+								if(substr(l1, 0, 31) == "               Command Interface")
+									l1 = "ARES" + substr(l1, 14, LAST);
 							#endif
-							++li;
+							#ifdef ALL_CAPS
+								variatype(llToUpper(l1), TEXT_START, 12);
+								variatype(llToUpper(gets(lines, 3)), TEXT_START + 6, 12);
+								variatype(llToUpper(gets(lines, 2)), TEXT_START + 60, 6);
+							#else
+								variatype(l1, TEXT_START, 12);
+								variatype(gets(lines, 3), TEXT_START + 6, 12);
+								variatype(gets(lines, 2), TEXT_START + 60, 6);
+							#endif
+							integer lmax = button_count = count(lines) - 4;
+							integer li = 0;
+							integer max_width = 6;
+							
+							if(lmax > 16)
+								max_width = 2;
+							else if(lmax > 8)
+								max_width = 3;
+							
+							// integer max_width = 6 / (integer)(lmax / 8);
+							
+							while(li < lmax) {
+								integer li_y = li % 8 + 2;
+								integer li_col = (li >> 3) * max_width;
+								#ifdef ALL_CAPS
+									variatype(llToUpper(gets(lines, li + 4)), TEXT_START + (li_y * 6 + li_col), max_width);
+								#else
+									variatype(gets(lines, li + 4), TEXT_START + (li_y * 6 + li_col), max_width);
+								#endif
+								++li;
+							}
 						}
-					}
+					#endif
 				#endif
 				} else if(cmd == "integrity") {
 					// integrity <integrity> <chassis-strength-multiplier> <remaining-durability>
@@ -1468,7 +1489,7 @@ default {
 					POWER_GAUGE = pi;
 				else if(pn == "rate_gauge")
 					RATE_GAUGE = pi;
-				else if(pn == "socket")
+				else if(pn == SOCKET_NAME)
 					SOCKET = pi;
 				else if(pn == "speaker") {
 					llLinkSetSoundQueueing(pi, TRUE);
@@ -1518,8 +1539,13 @@ default {
 		#if SCREEN_TYPE != SCREEN_NONE
 		clear_screen(FALSE);
 		if(SCREEN) {
-			#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE || SCREEN_TYPE == SCREEN_PLANAR
-				setp(SCREEN, [PRIM_TEXTURE, ALL_SIDES, llGetInventoryKey("m_boot"), ONES, ZV, 0
+			#if SCREEN_TYPE == SCREEN_SXD || SCREEN_TYPE == SCREEN_AIDE || SCREEN_TYPE == SCREEN_PLANAR || SCREEN_TYPE == SCREEN_DAYBREAK
+				setp(SCREEN, [PRIM_TEXTURE, ALL_SIDES, llGetInventoryKey("m_boot"), ONES, ZV, 
+				#if SCREEN_TYPE == SCREEN_DAYBREAK
+					PI_BY_TWO
+				#else
+					0
+				#endif
 				#ifdef FULL_COLOR_BOOT
 				, PRIM_COLOR, 1, ONES, 1
 				#endif
