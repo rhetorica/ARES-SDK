@@ -41,7 +41,7 @@
 #define FILE_STEP_SIZE 10
 #include <ARES/api/file.h.lsl>
 #include <ARES/api/auth.h.lsl>
-#define CLIENT_VERSION "1.2.0"
+#define CLIENT_VERSION "1.2.1"
 #define CLIENT_VERSION_TAGS "beta"
 
 key dbload_q;
@@ -406,6 +406,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 							} else if(mode_name == "DROP") {
 								mode = 4;
 								argv = delitem(argv, 0);
+							} else if(mode_name == "ALTER") {
+								mode = 6;
+								argv = delitem(argv, 0);
 							}
 							
 							string varkey = gets(argv, 0);
@@ -433,7 +436,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 									else if(mode == 3)
 										keyname += [JSON_APPEND];
 									
-									if(mode == 2 && getjs(section_data, keyname) != JSON_INVALID) {
+									integer invalid = (getjs(section_data, keyname) == JSON_INVALID);
+									
+									if(mode == 2 && invalid) {
 										// value already exists; not replacing
 									} else {
 										// perform the update in memory:
@@ -444,7 +449,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 												string k = gets(keys, ki);
 												section_data = setjs(section_data, keyname + [k], getjs(varvalue, [k]));
 											}
-										} else {
+										} else if((mode == 6 && invalid) || mode != 6) {
 											section_data = setjs(section_data, keyname, varvalue);
 										}
 										// apply the update if successful:
