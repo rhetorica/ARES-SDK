@@ -44,6 +44,12 @@ list opt_standard = ["off", "on", "toggle"];
 integer C_LIGHT_BUS = NOWHERE;
 integer initialized = FALSE;
 
+set_radio_policy() {
+	string policy_radio = getdbl("policy", ["radio"]);
+	integer pri = llListFindList(["open", "closed", "receive", "transmit"], [policy_radio]);
+	
+}
+
 main(integer src, integer n, string m, key outs, key ins, key user) {
 	@restart_main;
 	if(n == SIGNAL_INVOKE) {
@@ -321,7 +327,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						
 						msg = "Private radio communications are now in '" + current_radio + "' mode."; // + gets(radio_explanation, ri);
 						
-						// TODO: actual effects
+						set_radio_policy();
 						
 					} else {
 						msg = "Private radio communications are in '" + current_radio + "' mode."; // + gets(radio_explanation, ri);
@@ -391,7 +397,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			print(outs, user, msg);
 		}
 	} else if(n == SIGNAL_NOTIFY) {
-		if(gets(split(m, " "), 1) == "delay") {
+		list argv = split(m, " ");
+		string topic = gets(argv, 1);
+		if(topic == "delay") {
 			integer time = (integer)getdbl("policy", ["autolock", "time"]);
 			integer result = (integer)getdbl("policy", ["autolock", "enabled"]);
 			if(result) {
@@ -401,7 +409,21 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				set_timer("autolock", 0); // clear any errant messages
 			}
 		} else {
-			echo("[" + PROGRAM_NAME + "] " + m + "?");
+			integer argi = ((count(argv) - 1) >> 1);
+			while(argi--) {
+				topic = gets(argv, (argi << 1) + 1);
+				value = gets(argv, (argi << 1) + 2);
+				
+				if(topic == "receive") {
+					// obsolete
+					
+				} else if(topic == "transmit") {
+					// obsolete
+					
+				} else {
+					echo("[" + PROGRAM_NAME + "] unknown notification: " + topic + "?");
+				}
+			}
 		}
 	} else if(n == SIGNAL_TIMER) {
 		if(m == "autolock") {
@@ -472,6 +494,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		
 		integer policy_release = (integer)getdbl("policy", ["release"]);
 		notify_program("input release " + gets(["y", "n"], policy_release), avatar, NULL_KEY, avatar);
+		
+		notify_program("_power notify " + PROGRAM_NAME, avatar, NULL_KEY, avatar);
+		set_radio_policy();
 		
 		initialized = TRUE;
 	} else if(n == SIGNAL_EVENT) {
