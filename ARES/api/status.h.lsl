@@ -61,7 +61,7 @@
 
 // create/modify or remove a power load:
 #define set_power_load(_device, _load_name, _wattage) setdbl("chassis", ["load", _device + "__" + _load_name], (string)_wattage)
-#define delete_power_load(_device, _load_name) deletedbl("chassis", ["load", _device + "__" + _load_name])
+#define delete_power_load(_device, _load_name) { if(getdbl("chassis", ["load", _device + "__" + _load_name]) != JSON_INVALID) deletedbl("chassis", ["load", _device + "__" + _load_name]); }
 // (remember to trigger a status update afterward, as described in the comment above)
 
 #define status_update() e_call(C_STATUS, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " status update");
