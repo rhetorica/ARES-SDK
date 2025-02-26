@@ -85,4 +85,7 @@
 // send a HUD alert message from a daemon:
 #define daemon_alert(_message, _icon, _color, _buttons, ...) daemon_to_daemon(E_VARIATYPE, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " variatype alert " + _message + "\n" + (string)(_icon) + "\n" + (string)(_color) + "\n" + (string)(_buttons) + "\n" + jsarray(__VA_ARGS__))
 
+// command_prompt(outs, ins, user, message, command_prefix): prompt a user for parameters to append to command_prefix, then execute it. A space is automatically inserted between command_prefix and the user-supplied parameters.
+#define command_prompt(_outs, _ins, _user, _message, _command_prefix) e_call(C_BASEBAND, E_SIGNAL_CALL, (string)_outs + " " + (string)_user + " baseband prompt " + jsobject(["message", _message, "ins", _ins, "command", _command_prefix]))
+
 #endif // _ARES_INTERFACE_H_
