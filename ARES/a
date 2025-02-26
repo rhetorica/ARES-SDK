@@ -45,7 +45,7 @@
 #define ARES_VERSION_TAGS "beta 3"
 
 // copyright year for the OS:
-#define ARES_YEAR "2022-2024"
+#define ARES_YEAR "2022-2025"
 
 // ring definitions (link numbers):
 #define R_KERNEL  1
