@@ -67,16 +67,16 @@
   after creation, the program will receive SIGNAL_NOTIFY with the message "* pipe <definition>" for each pipe generated, with ins == the pipe key and outs == the next key.
 */
 
-#define pipe_open(...) e_call(C_IO, E_SIGNAL_CREATE_RULE, jsarray((list)(__VA_ARGS__)))
+#define pipe_open(...) e_call(C_IO, E_SIGNAL_CREATE_RULE, jsarray((__VA_ARGS__)))
 
 // delete a series of pipes (provide as a list of keys):
-#define pipe_close(...) e_call(C_IO, E_SIGNAL_DELETE_RULE, jsarray((list)(__VA_ARGS__)))
+#define pipe_close(...) e_call(C_IO, E_SIGNAL_DELETE_RULE, jsarray((__VA_ARGS__)))
 
 // as pipe_close, but only remove volatile invoke pipes:
-#define pipe_close_volatile(...) e_call(C_IO, E_SIGNAL_DELETE_RULE, "V" + jsarray((list)(__VA_ARGS__)))
+#define pipe_close_volatile(...) e_call(C_IO, E_SIGNAL_DELETE_RULE, "V" + jsarray((__VA_ARGS__)))
 
 // assign a new next pipe to an existing pipe:
-#define pipe_extend(__pipe, __next) e_call(C_IO, E_SIGNAL_CREATE_RULE, jsarray((list)("p:" + (string)(__pipe) + " n:" + (string)(__next))))
+#define pipe_extend(__pipe, __next) e_call(C_IO, E_SIGNAL_CREATE_RULE, jsarray(("p:" + (string)(__pipe) + " n:" + (string)(__next))))
 
 #undef SAFE_EOF
 #define SAFE_EOF ""
