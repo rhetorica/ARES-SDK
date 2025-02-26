@@ -10,7 +10,7 @@
    *                                                         *
    *                     UTILS COMPONENT                     *
    *                                                         *
-   *  Copyright, (C) Nanite Systems Corp., 1984-85, 2017-24  *
+   *  Copyright, (C) Nanite Systems Corp., 1984-85, 2017-25  *
    *                                                         *
    *     Copyright, (C) University of Michigan 1977-1981     *
    *                                                         *
@@ -117,10 +117,10 @@
 #define js2list llJson2List
 
 // string jsarray(list x): returns a JSON string containing the elements of list x. All types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
-#define jsarray(...) llList2Json(JSON_ARRAY, __VA_ARGS__)
+#define jsarray(...) llList2Json(JSON_ARRAY, (list)__VA_ARGS__)
 
 // string jsobject(list x): eturns a string that is a representation of the values in list x encoded into a JSON object. The source list will be interpreted as having a stride of 2, with even-numbered elements becoming the keys of the new object, and odd-numbered elements becoming values. For values, all types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
-#define jsobject(...) llList2Json(JSON_OBJECT, __VA_ARGS__)
+#define jsobject(...) llList2Json(JSON_OBJECT, (list)(__VA_ARGS__))
 
 // list jskeys(string json): returns a list containing only the key names of the provided JSON object. Will misbehave if fed a JSON array by accident.
 #define jskeys(__jso) llList2ListStrided(llJson2List(__jso), 0, LAST, 2)
@@ -158,7 +158,7 @@
 #define vec2str(_vec) ((string)_vec.x + " " + (string)_vec.y + " " + (string)_vec.z)
 
 // string vec2str2(vector v): returns a string "x y z" from a vector <x, y, z>; argument may be a literal, but generated code is worse than vec2str()
-#define vec2str2(_vec) substr(replace((string)_vec, ", ", " "), 1, -2)
+#define vec2str2(_vec) substr(replace((string)(_vec), ", ", " "), 1, -2)
 
 // vector str2vec(string v): returns a vector <x, y, z> from a string that describes a vector in the format "x y z".
 #define str2vec(__str) (vector)("<" + replace(__str, " ", ",") + ">")
