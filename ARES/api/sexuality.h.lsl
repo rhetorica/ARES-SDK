@@ -35,11 +35,12 @@
  */
 
 #ifndef _ARES_SEXUALITY_H_
-#define SEXUALITY_VERSION "0.9.3"
+#define SEXUALITY_VERSION "0.9.4"
 #define SEXUALITY_VERSION_TAGS "preview 3"
 
 #define C_LUST -9999969
 #define C_LUST_FX -1010101
+#define LUST_INTERNAL_CHANNEL 9996900
 
 list SEXUALITY_MODES = ["disabled", "narrative", "interactive", "masochism"];
 #endif // #ifndef _ARES_SEXUALITY_H_
