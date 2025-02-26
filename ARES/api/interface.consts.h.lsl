@@ -128,7 +128,7 @@
 
 // 112-126: apps & stuff
 
-// 112-120: unused
+// 112-120: sticky notes
 
 #define LL_TARGET_LOCK 121
 #define LL_NAV_DEST 122
@@ -201,7 +201,11 @@ activate with:
 
 #define CONFIG_CONTROLS 208
 
-// 209-248: available
+// 209-245: available
+
+#define PERFMON_EVENTS 246
+#define PERFMON_CPU 247
+#define PERFMON_DRAW 248
 
 // 13-14, 86, and 249-250: mouselook combat stuff
 #define INTEGRITY 249
