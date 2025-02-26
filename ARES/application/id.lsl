@@ -134,18 +134,18 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			
 			if(kernel_version != package_version) {
 				if(kernel_version_tags != JSON_INVALID && kernel_version_tags != "")
-					kernel_version = kernel_version + " " + kernel_version_tags;
+					kernel_version = kernel_version + " (" + kernel_version_tags + ")";
 				
 				msg += "\nKernel version: " + kernel_version;
 			}
 			
 			if(package_version != CLIENT_VERSION)
 				msg += 
-					"\nid version: " + CLIENT_VERSION				
+					"\nid version: "
 					#ifdef CLIENT_VERSION_TAGS
-						+ " " + CLIENT_VERSION_TAGS + " (_id compiled " + __DATE__ + ")"
+						+ CLIENT_VERSION_TAGS + " " + CLIENT_VERSION + " (" + __DATE__ + ")"
 					#else
-						+ "\nid compiled: " + __DATE__
+						+ CLIENT_VERSION + "(" + __DATE__ + ")"
 					#endif
 				;
 			
