@@ -83,6 +83,14 @@ string config_parameter = "(uninitialized)";
 vector config_value;
 vector config_backup;
 
+integer weapon_active;
+key weapon;
+float weapon_charge;
+float weapon_capacity;
+float weapon_shot_cost;
+
+string BIGNUM_TEX;
+
 position_all(integer only_devices) {
 	in_mlook = TRUE && (llGetAgentInfo(avatar) & AGENT_MOUSELOOK);
 	if(in_mlook) {
@@ -543,6 +551,90 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			if(!heat_alarm)
 				llLinkStopSound(HEAT_GAUGE);
 		}
+	} else if(n == SIGNAL_NOTIFY) {
+		list argv = splitnulls(m, " ");
+		string action = gets(argv, 1);
+		
+		if(action == "weapon") {
+			integer update_display;
+			
+			// echo("weapon: " + m);
+			
+			weapon = outs;
+			string subaction = gets(argv, 2);
+			if(subaction == "active") {
+				weapon_active = 1;
+				update_display = 1;
+				weapon_shot_cost = (float)gets(argv, 3);
+				weapon_capacity = (float)gets(argv, 4);
+				weapon_charge = (float)gets(argv, 5);
+			} else if(subaction == "inactive") {
+				weapon_active = 0;
+				update_display = 1;
+			} else if(subaction == "info") {
+				float new_weapon_charge = (float)gets(argv, 5);
+				float new_weapon_capacity = (float)gets(argv, 4);
+				float new_weapon_shot_cost = (float)gets(argv, 3);
+				if(new_weapon_charge != weapon_charge
+				|| new_weapon_shot_cost != weapon_shot_cost
+				|| new_weapon_capacity != weapon_capacity) {
+					weapon_capacity = new_weapon_capacity;
+					weapon_shot_cost = new_weapon_shot_cost;
+					weapon_charge = new_weapon_charge;
+					update_display = 1;
+				}
+			} else if(subaction == "fire") {
+				weapon_charge -= weapon_shot_cost;
+				if(weapon_charge < 0)
+					weapon_charge = 0;
+				update_display = 1;
+			}
+			
+			if(update_display) {
+				if(weapon != "" && weapon != NULL_KEY && llGetOwnerKey(weapon) != weapon) {
+					if(weapon_shot_cost == 0)
+						return;
+					
+					integer total_ammo = (integer)(weapon_charge / weapon_shot_cost);
+					integer total_ammo_max = (integer)(weapon_capacity / weapon_shot_cost);
+					
+					string ammo_string = (string)total_ammo + ":" + (string)total_ammo_max;
+					ammo_string = delstring(";;;;;;;;", 8 - strlen(ammo_string), LAST) + ammo_string;
+					
+					#define BIGNUM(_face, _index, _color) PRIM_TEXTURE, _face, BIGNUM_TEX, <0.0625, 1, 0>, <-0.46875 + 0.0625 * (float)(_index), 0, 0>, 0, PRIM_COLOR, _face, _color, 1
+					
+					vector ammo_color = color;
+					if(weapon_charge < weapon_shot_cost)
+						ammo_color = color_bad;
+					else if(weapon_charge <= 0.25 * weapon_capacity)
+						ammo_color = color_bad * 0.5 + color * 0.5;
+					
+					integer i = 8;
+					while(i--)
+						setp(AMMO, [BIGNUM(i, llOrd(ammo_string, i) - 0x30, ammo_color)]);
+				
+				}
+				
+				if(in_mlook && weapon_active && (weapon != "" && weapon != NULL_KEY && llGetOwnerKey(weapon) != weapon)) {
+					setp(AMMO, [
+						PRIM_ROTATION, VISIBLE,
+					PRIM_LINK_TARGET, AMMO_LABEL,
+						PRIM_ROTATION, VISIBLE
+					]);
+				} else {
+					setp(AMMO, [
+						PRIM_ROTATION, INVISIBLE,
+						PRIM_TEXT, "", ZV, 0,
+					PRIM_LINK_TARGET, AMMO_LABEL,
+						PRIM_ROTATION, INVISIBLE
+					]);
+				}
+			}
+			
+		} else {
+			echo("? " + m);
+		}
+		
 	} else if(n == SIGNAL_INIT) {
 		#ifdef DEBUG
 			echo("[" + PROGRAM_NAME + "] init event");
@@ -560,6 +652,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	@reconfigure;
 	{
 		string s_interface = llLinksetDataRead("interface");
+		
+		BIGNUM_TEX = getjs(s_interface, ["combat", "nums"]);
 		
 		screen_height = (integer)getjs(s_interface, ["height"]);
 		if(!screen_height) screen_height = 1008;

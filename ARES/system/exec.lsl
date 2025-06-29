@@ -38,6 +38,7 @@
 
 // it's good enough for real computers:
 #define NON_VOLATILE
+#define LEGACY_NON_VOLATILE
 #define DAEMON_LISTEN
 
 #ifdef TRACE
@@ -358,6 +359,16 @@ integer process_input(key outs, key handle, key user, string cml, integer in_scr
 		script_trigger_resolve = _resolved;
 		
 		return TRUE; // do not continue_script();
+	} else if(prog == "nudge") {
+		string msg;
+		if(!count(script_lines)) {
+			msg = "exec: not in a script";
+		} else {
+			msg = "exec: bypassing line " + gets(script_lines, script_li);
+			llSetTimerEvent(0.1);
+		}
+		print(outs, user, msg);
+		
 	} else if(prog == "exit") {
 		// not checking in_script; allow manual interruption
 		if(script_lines != []) {
@@ -624,7 +635,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		if(_mode & MODE_ACCEPT_DONE && ins == script_handle) {
 			continue_script();
 		} else {
-			echo("[_exec] script '" + file_name + "' still running; use 'exit' to abort");
+			echo("[_exec] script '" + file_name + "' still running; type '@exit' to abort");
 			// echo("(got " + (string)ins + " instead of " + (string)script_handle);
 		}
 		

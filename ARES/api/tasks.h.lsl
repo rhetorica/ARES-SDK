@@ -68,7 +68,7 @@ string tasks_queue = "{}";
 // [DEPRECATED] send a receipt for a completed task, without shutting down:
 #define resolve(_R) if(_R) system(SIGNAL_DONE, ares_encode(_R) + NULL_KEY + " " + PROGRAM_NAME)
 
-// [DEPRECATED] send a receipt for a completed task (with callback), without shutting down - deprecated:
+// send a receipt for a completed task (with callback), without shutting down - suitable for modern NV jobs:
 #define resolvec(_R, _ins) if(_R) system(SIGNAL_DONE, ares_encode(_R) + (string)(_ins) + " " + PROGRAM_NAME)
 
 // [QUESTIONABLE] send a receipt for a completed task, including callback, and close streams (if they are volatile invoke pipes):

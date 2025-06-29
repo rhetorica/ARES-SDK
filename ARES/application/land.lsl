@@ -90,7 +90,7 @@
 */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.2.1"
+#define CLIENT_VERSION "0.2.2"
 #define CLIENT_VERSION_TAGS "alpha"
 
 main(integer src, integer n, string m, key outs, key ins, key user) {

@@ -817,7 +817,7 @@ integer UThread;
 key IsRestoring;
 key Library;
 key IsSaveDue;
-integer G;
+integer G = 2;
 
 default
 {
@@ -828,12 +828,20 @@ default
         K = llGetLinkKey(3);
         LslUserScript = llGetScriptName();
         edefaultrez = llListen(2046820352, "", E, "");
-        llMessageLinked(1, 3840, LslUserScript + "\n" + "0.2.5" + " " + "lang " + "0.2.3", "");
+        llMessageLinked(1, 3840, LslUserScript + "\n" + "0.2.6" + " " + "lang " + "0.2.3", "");
     }
 
     on_rez(integer llJsonValueType)
     {
-        llResetScript();
+        E = llGetLinkKey(1);
+        gC = llGetLinkKey(2);
+        K = llGetLinkKey(3);
+        LslUserScript = llGetScriptName();
+        llListenRemove(edefaultrez);
+        edefaultrez = llListen(2046820352, "", E, "");
+        g_ = 0;
+        H = "";
+        llMessageLinked(1, 3840, LslUserScript + "\n" + "0.5.4" + " " + "beta 3", "");
     }
 
     listen(integer llListen, string llFrand, key llGetListEntryType, string llJsonValueType)
@@ -857,22 +865,8 @@ default
             }
             if (UThread & -(llJsonGetValue(System, (list)((string)IsRestoring)) == "﷐"))
                 llRegionSayTo(gC, 2046828547, "%3" + H + "V" + llList2Json("﷒", (list)IsRestoring));
-            if (llList2ListStrided(llJson2List(System), 0, ((integer)-1), 2) == [])
-            {
-                {
-                    if (UThread)
-                        llMessageLinked(1, 4, llChar(33 + ((UThread & 4032) >> 6)) + llChar(33 + (UThread & 63)) + (string)IsRestoring + " " + LslUserScript, "");
-                    llMessageLinked(1, 3849, LslUserScript, "");
-                    G = G & ((integer)-2);
-                    llSetScriptState(LslUserScript, 0);
-                    llSleep(0.022);
-                }
-            }
-            else
-            {
-                if (UThread)
-                    llMessageLinked(1, 4, llChar(33 + ((UThread & 4032) >> 6)) + llChar(33 + (UThread & 63)) + (string)IsRestoring + " " + LslUserScript, "");
-            }
+            if (UThread)
+                llMessageLinked(1, 4, llChar(33 + ((UThread & 4032) >> 6)) + llChar(33 + (UThread & 63)) + (string)IsRestoring + " " + LslUserScript, "");
         }
         else
         {

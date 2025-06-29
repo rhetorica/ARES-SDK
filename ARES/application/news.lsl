@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2025 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.2.2"
+#define CLIENT_VERSION "0.2.3"
 #define CLIENT_VERSION_TAGS "alpha"
 
 list feeds;

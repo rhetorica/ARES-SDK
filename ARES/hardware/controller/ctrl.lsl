@@ -117,6 +117,12 @@
 
 // most of the above are untested; feel free to experiment and file bug reports or submit fixes
 
+// #define GAUGE_TEX_SCALE 1
+// resize the gauge texture (added for Federator)
+
+// #define GAUGE_TEX_ROT 0
+// rotate the gauge texture (added for Federator)
+
 // #define FAN_AXIS
 // set the direction that the fan prim should spin around (default: <0, 0, 1>) - can also be calculated during extra_startup() by setting fan_axis variable
 // #define MAX_FAN_SPEED
@@ -304,6 +310,12 @@ vector fan_axis;
 #ifndef METER_TEX
 	#define METER_TEX "e8d9ff28-cd08-f792-cdc6-95533ee8d360"
 #endif
+#ifndef GAUGE_TEX_SCALE
+	#define GAUGE_TEX_SCALE 1.0
+#endif
+#ifndef GAUGE_TEX_ROT
+	#define GAUGE_TEX_ROT 0
+#endif
 #ifndef IMPACT_SOUNDS
 	#define IMPACT_SOUNDS ["f5fd6f18-ef7d-85e3-4d5c-e56bd8e0e16a", "1b534a6e-e89b-3e11-ec5a-2da94f845b89", "b687ed67-61fc-bf07-8382-b07aba752df6"]
 	#define IMPACT_SOUND_COUNT 3
@@ -445,7 +457,7 @@ lights() {
 		
 		actions += [
 			PRIM_LINK_TARGET, POWER_GAUGE,
-			PRIM_TEXTURE, ALL_SIDES, METER_TEX, <0.25, 1.0, 0>, <power * -0.25 + 0.125, 0.125, 0>, 0,
+			PRIM_TEXTURE, ALL_SIDES, METER_TEX, <0.25, 1.0, 0> / GAUGE_TEX_SCALE, <power * -0.25 + 0.125, 0.125, 0>, GAUGE_TEX_ROT,
 			PRIM_COLOR, ALL_SIDES, pc * power_factor, 1
 		];
 	}
@@ -466,7 +478,7 @@ lights() {
 			}
 			actions += [
 				PRIM_LINK_TARGET, RATE_GAUGE,
-				PRIM_TEXTURE, ALL_SIDES, METER_TEX, <0.25, 1.0, 0>, <p_rate * -0.25 + 0.125, 0.375, 0>, 0,
+				PRIM_TEXTURE, ALL_SIDES, METER_TEX, <0.25, 1.0, 0> / GAUGE_TEX_SCALE, <p_rate * -0.25 + 0.125, 0.375, 0>, GAUGE_TEX_ROT,
 				PRIM_COLOR, ALL_SIDES, rc * power_factor, 1
 			];
 			// echo("Rate now: " + (string)rate);
@@ -901,7 +913,9 @@ default {
 				tell(system, c, "color-q");
 				llSleep(0.1);
 				tell(system, c, "conf-get id.callsign");
+				llSleep(0.2);
 				tell(system, c, "conf-get interface.sound");
+				llSleep(0.2);
 				tell(system, c, "conf-get hardware.controller");
 				#ifndef OVERRIDE_TOUCH
 					#if SCREEN_TYPE != SCREEN_NONE && SCREEN_TYPE != SCREEN_DAYBREAK
@@ -1225,15 +1239,20 @@ default {
 				} else if(cmd == "temperature") {
 					temperature = (float)gets(argv, 1);
 				} else if(cmd == "conf") {
-					string a1 = gets(argv, 1);
-					string p = concat(delrange(argv, 0, 1), " ");
-					if(a1 == "hardware.controller") {
-						soothe = (integer)getjs(p, ["soothe"]);
-					} else if(a1 == "id.callsign") {
-						llSetObjectName(p + " (controller)");
-					} else if(a1 == "interface.sound") {
-						sounds = p;
-					}
+					/*list lines = split(delstring(m, 0, 4), "\n"); // remove 'conf '
+					integer i = count(lines);
+					while(i--) {
+						argv = split(gets(lines, i), " ");*/
+						string a1 = gets(argv, 1);
+						string p = concat(delrange(argv, 0, 1), " ");
+						if(a1 == "hardware.controller") {
+							soothe = (integer)getjs(p, ["soothe"]);
+						} else if(a1 == "id.callsign") {
+							llSetObjectName(p + " (controller)");
+						} else if(a1 == "interface.sound") {
+							sounds = p;
+						}
+					// }
 				#if SCREEN_TYPE != SCREEN_NONE
 				} else if(cmd == "menu" && power_on) {
 					current_menu = m;
@@ -1509,8 +1528,10 @@ default {
 					LID_LEFT = pi;
 				else if(pn == "lidr")
 					LID_RIGHT = pi;
-				/*else
-					echo("part " + (string)pi + ": " + pn);*/
+				
+				#ifdef DEBUG_LINKS
+					echo("found " + pn + " at link address :" + (string)pi);
+				#endif
 			}
 			
 			integer pc;

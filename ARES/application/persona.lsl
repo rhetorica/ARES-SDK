@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2025 Nanite Systems Corporation
  *  
  * =========================================================================
  *

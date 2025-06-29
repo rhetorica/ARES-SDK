@@ -47,7 +47,14 @@ integer initialized = FALSE;
 set_radio_policy() {
 	string policy_radio = getdbl("policy", ["radio"]);
 	integer pri = llListFindList(["open", "closed", "receive", "transmit"], [policy_radio]);
+	if(!~pri)
+		pri = 0;
 	
+	effector_release("policy_radio");
+	if(pri) {
+		string users = getdbl("security", ["user"]);
+		list user_keys = jskeys(users);
+	}
 }
 
 main(integer src, integer n, string m, key outs, key ins, key user) {
@@ -412,7 +419,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			integer argi = ((count(argv) - 1) >> 1);
 			while(argi--) {
 				topic = gets(argv, (argi << 1) + 1);
-				value = gets(argv, (argi << 1) + 2);
+				string value = gets(argv, (argi << 1) + 2);
 				
 				if(topic == "receive") {
 					// obsolete

@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2025 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -40,7 +40,7 @@
 #include <ARES/a>
 #include <ARES/api/interface.consts.h.lsl>
 
-#define CLIENT_VERSION "1.0.1"
+#define CLIENT_VERSION "1.0.2"
 #define CLIENT_VERSION_TAGS "release"
 
 string fg_image = "947c7a17-4e88-2f96-b419-dc37b647127d";

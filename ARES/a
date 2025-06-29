@@ -3,7 +3,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2023 Nanite Systems Corporation
+ *            Copyright (c) 2022–2025 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -41,7 +41,7 @@
 #define ARES
 
 // version that OS components will report:
-#define ARES_VERSION "0.5.3"
+#define ARES_VERSION "0.5.5"
 #define ARES_VERSION_TAGS "beta 3"
 
 // copyright year for the OS:

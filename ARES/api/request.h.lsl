@@ -46,13 +46,13 @@
 #define http_get(_url, _outs, _user) notify_program("proc fetch " + _url, _outs, NULL_KEY, _user)
 
 // http_get but with headers (use llHTTPRequest() format):
-#define http_get_extended(_url, _outs, _user, ...) notify_program("proc fetch " + _url + " " + jsarray((list)(__VA_ARGS__)), _outs, NULL_KEY, _user)
+#define http_get_extended(_url, _outs, _user, ...) notify_program("proc fetch " + _url + " " + jsarray(__VA_ARGS__), _outs, NULL_KEY, _user)
 
 // http_post(): POSTs the input stream to a web address - use pipe_write() with a generated key to populate the input stream
 #define http_post(_url, _outs, _ins, _user) notify_program("proc fetch " + _url, _outs, _ins, _user)
 
 // http_post() but with headers (use llHTTPRequest() format):
-#define http_post_extended(_url, _outs, _ins, _user, ...) notify_program("proc fetch " + _url + " " + jsarray((list)(__VA_ARGS__)), _outs, _ins, _user)
+#define http_post_extended(_url, _outs, _ins, _user, ...) notify_program("proc fetch " + _url + " " + jsarray(__VA_ARGS__), _outs, _ins, _user)
 
 // request_uuid(): returns agent key
 #define request_uuid(_agent, _outs, _user) notify_program("proc uuid " + _agent, _outs, NULL_KEY, _user)

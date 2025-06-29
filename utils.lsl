@@ -117,7 +117,7 @@
 #define js2list llJson2List
 
 // string jsarray(list x): returns a JSON string containing the elements of list x. All types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
-#define jsarray(...) llList2Json(JSON_ARRAY, (list)__VA_ARGS__)
+#define jsarray(...) llList2Json(JSON_ARRAY, (list)(__VA_ARGS__))
 
 // string jsobject(list x): eturns a string that is a representation of the values in list x encoded into a JSON object. The source list will be interpreted as having a stride of 2, with even-numbered elements becoming the keys of the new object, and odd-numbered elements becoming values. For values, all types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
 #define jsobject(...) llList2Json(JSON_OBJECT, (list)(__VA_ARGS__))

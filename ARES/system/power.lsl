@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2025 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -42,6 +42,7 @@ integer EPS_active = 0;
 integer power_on = 1;
 integer max_state;
 integer power_state;
+integer forbidden_state;
 string power_systems;
 string power_system_names = "{}";
 float power_draw = 0;
@@ -62,25 +63,44 @@ apply_state(integer update, integer report_state) {
 	list enabled_systems;
 	list masked_systems;
 	list disabled_systems;
+	list forbidden_systems;
+	
 	notify_cmds = "{}";
 	
 	while((ps = getjs(power_systems, [(string)psi])) != JSON_INVALID) {
-		integer system_enabled = ((power_state & (1 << psi)) != FALSE) && power_on;
+		integer system_forbidden = (forbidden_state & (1 << psi)) != FALSE;
+		integer system_enabled = (((power_state & (1 << psi)) != FALSE) && power_on);
 		integer raw_se = system_enabled;
 		
 		string psname = getjs(ps, ["name"]);
 		
-		if(system_enabled) {
+		// echo("system #" + (string)psi + " (" + (string)(1 << psi) + ") '" + psname + "'");
+		
+		if(system_forbidden) {
+			system_enabled = FALSE;
+			// echo("...is forbidden");
+		} else if(system_enabled) {
+			// echo("...is enabled");
+			
 			list psreqs = js2list(getjs(ps, ["req"]));
 			integer psri = count(psreqs);
 			while(psri--) {
 				integer psreq = geti(psreqs, psri);
-				system_enabled = (system_enabled && (power_state & (1 << psreq)));
+				system_enabled = (system_enabled && (power_state & (1 << psreq)) && !(forbidden_state & (1 << psreq)));
+				if(!system_enabled) {
+					// echo("...but inhibited due to inavailability of system " + (string)psreq);
+					jump brk;
+				}
 			}
-		}
+			@brk;
+		} /*else {
+			echo("...is disabled");
+		}*/
 		
 		if(report_state) {
-			if(system_enabled)
+			if(system_forbidden)
+				forbidden_systems += psname;
+			else if(system_enabled)
 				enabled_systems += psname;
 			else if(raw_se)
 				masked_systems += psname;
@@ -143,6 +163,7 @@ apply_state(integer update, integer report_state) {
 		string e = concat(enabled_systems, ", ");
 		string m = concat(masked_systems, ", ");
 		string d = concat(disabled_systems, ", ");
+		string f = concat(forbidden_systems, ", ");
 		
 		integer sl = strlen(s);
 		
@@ -156,15 +177,17 @@ apply_state(integer update, integer report_state) {
 	
 		print(cmd_outs, cmd_user, "[" + PROGRAM_NAME + "] system status\n"
 		+ "\nsupported subsystems: " + s
-		+ "\nfunctioning subsystems: " + e
-		+ "\nblocked subsystems: " + m
-		+ "\ndisabled subsystems: " + d
+		+ "\nonline: " + e
+		+ "\ndisabled explicitly: " + d
+		+ "\ndisabled due to policy or hardware limitations: " + f
+		+ "\ndisabled due to unmet dependencies: " + m
 		+ "\n\nsubsystem draw: " + (string)((integer)power_draw) + " W");
 	}
 	
 	if(update) {
-		s_status = setjs(setjs(setjs(s_status,
+		s_status = setjs(setjs(setjs(setjs(s_status,
 			["state"], (string)power_state),
+			["forbidden"], (string)forbidden_state),
 			["draw"], (string)power_draw),
 			["on"], (string)power_on);
 		llLinksetDataWrite("status", s_status);
@@ -459,8 +482,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				
 				apply_state(1, 0);
 			} else if((pss = getjs(power_system_names, [sys])) != JSON_INVALID) {
+				integer system_forbidden = (forbidden_state & (1 << (integer)pss)) != FALSE;
+			
 				integer mask = 1 << (integer)pss;
 				// echo("Power state starts at " + (string)power_state);
+				
 				if(act == "toggle" || act == "") {
 					integer new_power_state = power_state ^ mask;
 					if(new_power_state > power_state)
@@ -475,6 +501,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				} else if(act == "off") {
 					power_state = power_state & ~(mask);
 					ann = "subsystem-0";
+				}
+				
+				if(system_forbidden) {
+					ann = "critical-error";
+					msg = "power operation failed: " + sys + " is unavailable due to hardware or policy limitations";
 				}
 				
 				// echo("Changing " + pss + " #?# " + (string)mask + " -> " + (string)power_state);
@@ -506,7 +537,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			string status = gets(argv, ci + 1);
 			// echo("POWER notify: " + cmd + " " + status);
 			
-			if(cmd == "charged") {
+			if(cmd == "forbidden") {
+				// change in forbidden rules
+				forbidden_state = (integer)getdbl("status", ["forbidden"]);
+				apply_state(1, 0);
+			} else if(cmd == "charged") {
 				// integer charge_bootable = (status == "y");
 				// no code required here - will occur automatically
 				
@@ -744,6 +779,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		string s_status = llLinksetDataRead("status");
 		string s_power = llLinksetDataRead("power");
 		power_on = (integer)getjs(s_status, ["on"]);
+		forbidden_state = (integer)getjs(s_status, ["forbidden"]);
 		power_state = (integer)getjs(s_status, ["state"]);
 		power_draw = (float)getjs(s_status, ["draw"]);
 		power_systems = getjs(s_power, ["system"]);

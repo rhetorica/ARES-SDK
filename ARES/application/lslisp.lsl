@@ -39,7 +39,7 @@
 
 #include <ARES/a>
 #include <lslisp.lsl>
-#define CLIENT_VERSION "0.2.5"
+#define CLIENT_VERSION "0.2.6"
 #define CLIENT_VERSION_TAGS "lang " + INTERPRETER_VERSION
 
 integer file_offset;

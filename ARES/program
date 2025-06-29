@@ -55,6 +55,20 @@ key _output_s;
 key _user;
 
 /*
+ * FORCE NON-VOLATILE (0.5.4)
+ *
+ * A new development experiment to ensure all jobs are NV.
+ * Jobs that (for some reason) can't be converted to NV can use #define VOLATILE
+ * to force the old behavior.
+ */
+
+#ifndef VOLATILE
+	#ifndef NON_VOLATILE
+		#define NON_VOLATILE
+	#endif
+#endif
+
+/*
  * CURRENT JOB MODE
  * 
  * (_mode & 1) if engaged in a thread (waiting for an event)
@@ -258,7 +272,6 @@ default {
 				main(_resolved = 0, n, remainder, NULL_KEY, NULL_KEY, NULL_KEY);
 			}
 			
-			#ifndef NON_VOLATILE
 			/*
 				PROBLEM: unlike linked messages, listeners can accumulate requests
 				while the program is hibernating, causing it to sleep while there
@@ -271,14 +284,19 @@ default {
 			if(_resolved && getjs(tasks_queue, [(string)_input_s]) == JSON_INVALID)
 				pipe_close_volatile([_input_s]);
 			
-			if(!task_count()) {
-				#ifdef DEBUG
-				echo("[" + PROGRAM_NAME + "] finished " + (string)n + ": " + remainder);
-				#endif
-				exitc(_input_s); // also performs resolve(_resolved)
-			} else {
+			#ifdef NON_VOLATILE
+				#ifndef LEGACY_NON_VOLATILE
 				resolvec(_resolved, _input_s);
-			}
+				#endif
+			#else
+				if(!task_count()) {
+					#ifdef DEBUG
+					echo("[" + PROGRAM_NAME + "] finished " + (string)n + ": " + remainder);
+					#endif
+					exitc(_input_s); // also performs resolve(_resolved)
+				} else {
+					resolvec(_resolved, _input_s);
+				}
 			#endif
 		}
 	}
