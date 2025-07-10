@@ -190,7 +190,7 @@ activate with:
 		21: CARRIED
 	slot 5 (prim 20): dive status (message 20) applied by ???
 		20: UNDER REMOTE CONTROL
-	slot 6 (prim 21): weapon status (messages 22-24) applied by ??? (device?)
+	slot 6 (prim 21): weapon status (messages 22-24) applied by ??? (display?)
 		22: LOW AMMO
 		23: NO AMMO
 		24: RELOADING
