@@ -129,6 +129,10 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						s_msg = "You have been denied access to " + callsign + " indefinitely.";
 					}
 					
+					if(llGetInventoryType("dispatch") == INVENTORY_SCRIPT) {
+						notify_program("dispatch security " + action, subject, NULL_KEY, subject);
+					}
+					
 					print(s_outs, subject, s_msg);
 					
 					if(recognition_inhibited && (action == "yes" || action == "trust"))

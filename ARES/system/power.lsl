@@ -374,7 +374,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					return;
 				}
 			
-				integer viable = FALSE;
+				integer viable = FALSE; // desired power change is possible
 				integer new_state = (sys == "on");
 				
 				if(!new_state && sys != "off") {
@@ -609,6 +609,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					}
 					
 					notify_program("security power", outs, NULL_KEY, user);
+					if(llGetInventoryType("dispatch") == INVENTORY_SCRIPT) {
+						notify_program("dispatch power", outs, NULL_KEY, user);
+					}
 					
 					llSleep(0.5);
 					
