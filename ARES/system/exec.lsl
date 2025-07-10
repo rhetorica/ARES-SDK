@@ -701,7 +701,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			if(ins == file_pipe) {
 				string file_buffer;
 				pipe_read(file_pipe, file_buffer);
-				integer read_length = 4;
+				integer read_length = 2;
 				
 				if(file_length != NOWHERE) {
 					if(file_unit == "b")
