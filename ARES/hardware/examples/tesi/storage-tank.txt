@@ -1,0 +1,34 @@
+If you are reading this, then congratulations! Your optical sensors are working perfectly.
+
+Unmodified, the TESI Storage Tank works as follows:
+
+    1. By default, the root prim is a cylinder that represents the actual liquid inside the tank. As long as it stays a cylinder, any changes to its size will correctly reflect the capacity of the tank. You can, of course, change it!
+    2. Communications occur over the LC protocol on channel -9999969.
+    3. Documentation for the LC protocol can be found at http://develop.nanite-systems.com/?id=1924
+    4. Interaction can be accomplished through the menus or by using another TESI device.
+
+If you would like to modify the Storage Tank script:
+
+    1. Make sure you have your development environment set up properly, first.
+        a. You must be using Firestorm.
+        b. In Preferences › Build 1, enable the following options:
+            i. LSL preprocesor
+            ii. Script optimizer
+            iii. #includes from local disk
+            (The other options are not required.)
+        c. Set your preprocessor include path to a location of your choice, and download the following files into it:
+            i. http://develop.nanite-systems.com/includes/utils.lsl
+            ii. http://develop.nanite-systems.com/includes/objects.lsl
+            (You may want to peruse http://develop.nanite-systems.com/includes/ for other NS-related header files.)
+    2. To modify the shape or appearance of the container:
+        a. The capacity_formula(size) macro on line 4 defines the cylindroidal volume of the shape.
+        b. Line 7 has an alternative for a cuboid.
+        c. To set a fixed volume that disregards shape, see line 10.
+        d. Unlink prim 1 from the other included prims. Link it to whatever tank appearance you want.
+        e. Prim 1 will always have its slice attribute set to match its current fill level.
+            If you switch to using a fixed volume, it may make a good meter. But it does need to stay as prim 1.
+        f. Retexture it! Make it pretty! The default materials are really just placeholders.
+    3. Feel free to sell your modifications to the tank.
+        a. Make sure you follow the guide at http://wiki.nanite-systems.com/?id=2496 to avoid brand confusion.
+
+That's all! Enjoy your robotic goo.
