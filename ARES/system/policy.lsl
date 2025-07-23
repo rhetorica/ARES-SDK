@@ -509,11 +509,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	} else if(n == SIGNAL_EVENT) {
 		integer e = (integer)m;
 		if(e == EVENT_ON_REZ) {
-			if(!initialized) {
-				// this should never happen, but hooking EVENT_ON_REZ is still helpful for ensuring SIGNAL_INIT is triggered anyway
-				n = SIGNAL_INIT;
-				jump restart_main;
-			}
+			// with universal nonvolatility this is now very relevant:
+			n = SIGNAL_INIT;
+			jump restart_main;
 		}
 	} else if(n == SIGNAL_UNKNOWN_SCRIPT) {
 		echo("[" + PROGRAM_NAME + "] failed to run '" + m + "' (kernel could not find the program specified)");

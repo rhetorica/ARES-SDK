@@ -756,15 +756,15 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				if(~fi) {
 					integer current_status = index(activated_filters, filter);
 					if(new_status && !~current_status) {
-						if(activated_filters == []) {
+						/*if(activated_filters == []) {
 							task_begin(session = llGenerateKey(), "");
-						}
+						}*/
 						activated_filters += filter;
 					} else if(~current_status && !new_status) {
-						activated_filters = delitem(activated_filters, current_status);
+						/*activated_filters = delitem(activated_filters, current_status);
 						if(activated_filters == []) {
 							task_end(session);
-						}
+						}*/
 						
 						if(filter == "translate" && translate_pipe != "") {
 							pipe_close(translate_pipe);
@@ -893,7 +893,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		#ifdef DEBUG
 			echo("[" + PROGRAM_NAME + "] init event");
 		#endif
-		list active_filters = jskeys(getdbl("vox", ["active"]));
+		/*list active_filters = jskeys(getdbl("vox", ["active"]));
 		integer ai = count(active_filters);
 		
 		while(ai--) {
@@ -906,7 +906,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				}
 				activated_filters += filter;
 			}
-		}
+		}*/
 	} else if(n == SIGNAL_UNKNOWN_SCRIPT) {
 		echo("[" + PROGRAM_NAME + "] failed to run '" + m + "' (kernel could not find the program specified)");
 	} else {
