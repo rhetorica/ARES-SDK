@@ -119,11 +119,15 @@
 // string jsarray(list x): returns a JSON string containing the elements of list x. All types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
 #define jsarray(...) llList2Json(JSON_ARRAY, (list)(__VA_ARGS__))
 
-// string jsobject(list x): eturns a string that is a representation of the values in list x encoded into a JSON object. The source list will be interpreted as having a stride of 2, with even-numbered elements becoming the keys of the new object, and odd-numbered elements becoming values. For values, all types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
+// string jsobject(list x): returns a string that is a representation of the values in list x encoded into a JSON object. The source list will be interpreted as having a stride of 2, with even-numbered elements becoming the keys of the new object, and odd-numbered elements becoming values. For values, all types other than integers and floats will be converted into quoted strings, but strings that resemble JSON (due to starting and ending with [] or {}) will be interpreted as JSON.
 #define jsobject(...) llList2Json(JSON_OBJECT, (list)(__VA_ARGS__))
 
-// list jskeys(string json): returns a list containing only the key names of the provided JSON object. Will misbehave if fed a JSON array by accident.
+// list jskeys(string json): returns a list containing only the key names of the provided JSON object. Will misbehave if fed a JSON array by accident. Equivalent to Object.keys(obj) in Javascript.
 #define jskeys(__jso) llList2ListStrided(llJson2List(__jso), 0, LAST, 2)
+
+
+// list jsvalues(string json): returns a list containing only the values of the provided JSON object. Will misbehave if fed a JSON array by accident. Equivalent to Object.values(obj) in Javascript.
+#define jsvalues(__jso) llList2ListStrided(llDeleteSubList(llJson2List(__jso), 0, 0), 0, LAST, 2)
 
 
 // linked(integer t, integer n, string m, key id): sends a link_message() event to linked prim t, with the parameters n, m, and id. Be careful when using link_message() for complex applications, as it can not only run out of event queue space (~64 events can be queued before silent dropping occurs), but also trigger an immense amount of pointless LSL executions (64 messages received by 64 scripts = 4096 events) that severely impact sim performance. For a tight, script-to-script communication method, use llListen() with the UUID set, as this filtering is done outside LSL.
@@ -170,7 +174,7 @@
 // string format_percentage(float f): converts a float to a percentage, e.g. 0.5 to 50%, or -2.31 to -231%. Always returns an integer.
 #define format_percentage(xxx) ((string)((integer)((xxx) * 100)) + "%")
 
-// string format_float(float f): truncates a float to the specified precision after the decimal point, e.g. format_float(0.010999, 3) == "0.010"; always rounds toward 0
+// string format_float(float f, integer places): truncates a float to the specified precision after the decimal point, e.g. format_float(0.010999, 3) == "0.010"; always rounds toward 0
 #define format_float(_number, _places) llGetSubString( (string) (_number), 0, llSubStringIndex( (string) (_number), ".") + _places )
 
 
