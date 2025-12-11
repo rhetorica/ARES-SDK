@@ -33,7 +33,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.1.0"
+#define CLIENT_VERSION "0.1.1"
 #define CLIENT_VERSION_TAGS "alpha"
 
 integer charging;
