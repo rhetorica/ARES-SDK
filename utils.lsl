@@ -280,6 +280,41 @@ list remap(list keys, list values, list input) {
 	return results;
 }
 
+// list zip(list A, list B): creates a strided list from two input lists; excess elements are discarded
+list zip(list A, list B) {
+	list out;
+	integer limit = count(A);
+	integer Blen = count(B);
+	if(Blen < limit)
+		limit = Blen;
+	
+	integer i = 0;
+	while(i < limit) {
+		out += sublist(A, i, i) + sublist(B, i, i);
+		++i;
+	}
+	
+	return out;
+}
+
+// string format_table(list A, integer stride, string separator): prints a strided list as CSV/TSV
+string format_table(list A, integer stride, string separator) {
+	if(separator == "")
+		separator = ",";
+	
+	integer i = 0;
+	integer imax = count(A);
+	string out;
+	for(i = 0; i < imax; ++i) {
+		if(i % stride == 0 && i != 0)
+			out += "\n";
+		else if(i % stride)
+			out += separator;
+		out += (string)sublist(A, i, i);
+	}
+	return out;
+}
+
 
 /* unicode management functions */
 
