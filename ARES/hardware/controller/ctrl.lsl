@@ -89,17 +89,21 @@
 // #define FORCE_INSERT
 // attempts to insert the battery when door closing fails
 // #define HOOK_POWER
-// causes transmission of "on", "off", "power", and "rate" link messages
+// causes transmission of link messages for "on", "off", "power", and "rate" light bus signals
 // #define HOOK_COLOR
-// causes transmission of "color", "color-2", "color-3", and "color-4" link messages
+// causes transmission of link messages for "color", "color-2", "color-3", and "color-4" light bus signals
 // #define HOOK_FAN
-// causes transmission of "fan" link messages
+// causes transmission of link messages for "fan" light bus signals
 // #define HOOK_MENU
-// causes transmission of "menu-open" and "menu-close" link messages
+// causes transmission of link messages for "menu-open" and "menu-close" light bus signals
 // #define HOOK_CONDITION
-// causes transmission of "broken", "fixed", "working", and "done" link messages
+// causes transmission of link messages for "broken", "fixed", "working", and "done" light bus signals
 // #define HOOK_PROJECTOR
-// causes forwarding of "projector" link messages
+// causes forwarding of link messages for "projector" light bus signals
+// #define HOOK_COMMAND
+// causes forwarding of link messages for "command" light bus signals (not normally handled by controller firmware)
+// #define HOOK_ADD_CONFIRM
+// causes forwarding of link messages for "add-confirm" light bus signals
 // #define INJECT_STARTUP
 // causes state_entry() and on_rez() to call a function named extra_startup()
 // #define FULL_COLOR_BOOT
@@ -966,6 +970,10 @@ default {
 					linked(LINK_THIS, 0, "menu-close", "");
 				#endif
 				
+				#ifdef HOOK_ADD_CONFIRM
+					linked(LINK_THIS, 0, m, id);
+				#endif
+				
 				jump socket_aperture;
 			} else if(m == "socket-aperture-q") {
 				jump socket_aperture;
@@ -1277,6 +1285,10 @@ default {
 						lubricant = (float)gets(argv, 1) / nlv;
 				} else if(cmd == "temperature") {
 					temperature = (float)gets(argv, 1);
+				#ifdef HOOK_COMMAND
+				} else if(cmd == "command") {
+					linked(LINK_THIS, 0, m, id);
+				#endif
 				} else if(cmd == "conf") {
 					/*list lines = split(delstring(m, 0, 4), "\n"); // remove 'conf '
 					integer i = count(lines);
