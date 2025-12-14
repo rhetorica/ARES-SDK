@@ -424,7 +424,13 @@ integer process_input(key outs, key handle, key user, string cml, integer in_scr
 			if(value == "%key") {
 				value = llGenerateKey();
 			} else if(value == "%undefined") {
-				value = JSON_DELETE;
+				if(getdb("env", gets(cargv, 1)) == JSON_INVALID) {
+					jump do_nothing;
+					//echo("Doesn't exist, not deleting again");
+				} else {
+					value = JSON_DELETE;
+					//echo("Deleting " + gets(cargv, 1));
+				}
 			} else if(value == "%empty") {
 				value = "";
 			} else if(sv == "%keys") {
@@ -466,6 +472,8 @@ integer process_input(key outs, key handle, key user, string cml, integer in_scr
 			}
 			
 			setdb("env", gets(cargv, 1), value);
+			@do_nothing;
+			
 		} else {
 			error_msg = "[_exec] not enough arguments: set";
 		}
