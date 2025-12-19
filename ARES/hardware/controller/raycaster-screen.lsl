@@ -39,6 +39,7 @@
 #define SND_BUTTON "e4174b28-6011-4b99-040b-b4ae58064f05"
 #define TX_SCREEN_DEFAULT "27409425-2804-5be0-5b83-9ccb3fa1888b"
 #define TX_SCREEN_INSTRUCTIONS "befc210f-0198-ffba-6948-f201431300be"
+#define TX_SCREEN_VIDEO "106f37cf-81e0-0770-4119-4bab951c1c8d"
 
 #define SND_OPEN "6ce74082-6781-fec8-76fc-a7b80f4993d1"
 #define SND_CLOSE "08a7ec6b-ab2d-687f-b639-a2b222f74c56"
@@ -48,7 +49,8 @@
 
 list screens = [
 	TX_SCREEN_DEFAULT,
-	TX_SCREEN_INSTRUCTIONS
+	TX_SCREEN_INSTRUCTIONS,
+	TX_SCREEN_VIDEO
 ];
 
 #define B_POWER 36
@@ -63,6 +65,10 @@ list screens = [
 #define LID_2 32
 #define LID_3 43
 #define SCREEN 2
+
+vector screen_color = <1, 1, 1>;
+integer screen_color_slot = -1;
+list colors = [ONES, ONES, ONES, ONES];
 
 list buttons = [B_POWER, B_B, B_A, B_PREV, B_NEXT, B_ANTENNAE];
 list b_names = ["power", "b", "a", "prev", "next", "antennae"];
@@ -242,8 +248,9 @@ antennae(integer extended) {
 
 shutdown() {
 	setp(SCREEN, [
-		PRIM_COLOR, ALL_SIDES, ZV, 0,
-		PRIM_GLOW, ALL_SIDES, 0
+		PRIM_COLOR, 1, ZV, 0,
+		PRIM_GLOW, 1, 0,
+		PRIM_TYPE, PRIM_TYPE_SPHERE, PRIM_HOLE_DEFAULT, <0.25, 0.75, 0>, 0.95, ZV, <0, 0, 0>
 	]);
 	
 	// antennae are always retracted when powered down:
@@ -256,8 +263,9 @@ shutdown() {
 
 boot() {
 	setp(SCREEN, [
-		PRIM_COLOR, ALL_SIDES, ONES, 1,
-		PRIM_GLOW, ALL_SIDES, 0.125
+		PRIM_COLOR, 1, screen_color, 1,
+		PRIM_GLOW, 1, 0.125,
+		PRIM_TYPE, PRIM_TYPE_SPHERE, PRIM_HOLE_DEFAULT, <0.25, 0.75, 0>, 0.95, ZV, <0, 1, 0>
 	]);
 	
 	// restore user preference:
@@ -278,6 +286,7 @@ default {
 		CL = 105 - (integer)("0x" + substr(avatar = llGetOwner(), 29, 35));
 		system = "";
 		tell(avatar, CL, "ping");
+		echo("Free memory: " + (string)llGetFreeMemory());
 		/* echo(llGetLinkName(LID_1));
 		echo(llGetLinkName(LID_2));
 		echo(llGetLinkName(LID_3)); */
@@ -295,7 +304,7 @@ default {
 			}
 			
 			setp(SCREEN, [
-				PRIM_TEXTURE, ALL_SIDES, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+				PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
 			]);
 		}
 		
@@ -360,7 +369,7 @@ default {
 		if(n == 0) {
 			if(m == "add-confirm" || ((m == "on" || m == "off"))) {
 				
-				if(m == "add-confirm" || system == "") {
+				if(m == "add-confirm" || system == "" || llGetOwnerKey(system) != llGetOwner()) {
 					// register special commands here:
 					
 					system = id;
@@ -388,15 +397,52 @@ default {
 						+ "\n    next: Cycle to next image"
 						+ "\n    prev: Cycle to previous image"
 						+ "\n    auto <interval>: Automatically cycle images every <interval> seconds (0 = off)"
-						+ "\n    reset: Restore default images"
+						+ "\n    reset: Restore default image rotation"
+						+ "\n    show <uuid>: Show a specific texture until canceled (or auto-cycled)"
+						+ "\n    video <url>: Plays a YouTube video from the embed link (silent, no loop)"
+						+ "\n    web <url>: Shows any web page"
+						+ "\n    cancel: Cancels 'show', 'video', or 'web'"
 						+ "\n    add <uuid> [<uuid>...]: Add a new image"
 						+ "\n    remove: Remove current image"
-						+ "\n    screens: List current screen images"
+						+ "\n    color <N>: Make screen color match system light channel N (1-4 = A-D)"
+						+ "\n    white: Make screen color always white"
+						+ "\n    screens: List images in rotation"
 						+ "\n    command <button> <string>: Set command for button"
 						+ "\n        Supported buttons: power, b, a, prev, next, antennae"
 						+ "\n    commands: List current commands for all buttons"
 						+ "\n    antennae [on|off]: Toggle or set antennae state"
 					);
+				} else if(action == "show") {
+					string image = gets(argv, 4);
+					setp(SCREEN, [
+						PRIM_TEXTURE, 1, image, <2, 1, 0>, ZV, PI_BY_TWO,
+						PRIM_MEDIA_AUTO_PLAY, 1,
+						PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_NONE,
+						PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_NONE
+					]);
+				} else if(action == "video") {
+					string trim = gets(argv, 4);
+					list terms = split(trim, "/");
+					trim = gets(terms, LAST);
+					llSetLinkMedia(SCREEN, 1, [
+						// PRIM_MEDIA_CURRENT_URL, "https://youtube.com/embed/" + gets(argv, 4) + "&autoplay=1",
+						PRIM_MEDIA_CURRENT_URL, "http://nanite-systems.com/service/yt/?" + trim,
+						PRIM_MEDIA_AUTO_PLAY, 1,
+						PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_NONE,
+						PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_NONE
+					]);
+				} else if(action == "web") {
+					llSetLinkMedia(SCREEN, 1, [
+						PRIM_MEDIA_CURRENT_URL, gets(argv, 4),
+						PRIM_MEDIA_AUTO_PLAY, 1,
+						PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_NONE,
+						PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_NONE
+					]);
+				} else if(action == "cancel") {
+					setp(SCREEN, [
+						PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+					]);
+					llClearLinkMedia(SCREEN, 1);
 				} else if(action == "auto") {
 					string new_auto = gets(argv, 4);
 					if(new_auto != "") {
@@ -412,7 +458,7 @@ default {
 					}
 					
 					setp(SCREEN, [
-						PRIM_TEXTURE, ALL_SIDES, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+						PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
 					]);
 				} else if(action == "prev") {
 					if(--image_index < 0) {
@@ -422,13 +468,42 @@ default {
 					// echo("Screen now " + (string)image_index);
 					
 					setp(SCREEN, [
-						PRIM_TEXTURE, ALL_SIDES, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+						PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
 					]);
 				} else if(action == "reset") {
 					screens = [
 						TX_SCREEN_DEFAULT,
-						TX_SCREEN_INSTRUCTIONS
+						TX_SCREEN_INSTRUCTIONS,
+						TX_SCREEN_VIDEO
 					];
+					
+					image_index = 0;
+					
+					setp(SCREEN, [
+						PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+					]);
+				} else if(action == "color") {
+					screen_color_slot = (integer)gets(argv, 4) - 1;
+					if(!~screen_color_slot) {
+						screen_color = ONES;
+					} else {
+						screen_color = getv(colors, screen_color_slot);
+					}
+
+					if(power_on) {
+						setp(SCREEN, [
+							PRIM_COLOR, 1, screen_color, 1
+						]);
+					}
+				
+				} else if(action == "white") {
+					screen_color = <1, 1, 1>;
+					screen_color_slot = -1;
+					if(power_on) {
+						setp(SCREEN, [
+							PRIM_COLOR, 1, screen_color, 1
+						]);
+					}
 					
 				} else if(action == "add") {
 					list new_screens = delrange(argv, 0, 3);
@@ -436,7 +511,7 @@ default {
 						screens = llListInsertList(screens, new_screens, image_index + 1);
 						image_index += 1;
 						setp(SCREEN, [
-							PRIM_TEXTURE, ALL_SIDES, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+							PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
 						]);
 						tell(user, 0, "Added " + (string)count(new_screens) + " screen(s).");
 					} else {
@@ -451,20 +526,20 @@ default {
 							tell(user, 0, "All images removed. Restoring default set.");
 							screens = [
 								TX_SCREEN_DEFAULT,
-								TX_SCREEN_INSTRUCTIONS
+								TX_SCREEN_INSTRUCTIONS,
+								TX_SCREEN_VIDEO
 							];
 						} else {
 							image_index = 0;
 						}
 						
 						setp(SCREEN, [
-							PRIM_TEXTURE, ALL_SIDES, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
+							PRIM_TEXTURE, 1, gets(screens, image_index), <2, 1, 0>, ZV, PI_BY_TWO
 						]);
 					}
 				} else if(action == "screens") {
 					tell(user, 0, "Current screens: " + concat(screens, ", "));
 				} else if(action == "command") {
-					tell(user, 0, "Unimplemented. FIX BEFORE SHIPPING AAAAAHHHHH");
 					string b_name = gets(argv, 4);
 					integer b = index(b_names, b_name);
 					if(~b) {
@@ -495,6 +570,17 @@ default {
 				} else {
 					tell(user, 0, "Unknown action: " + action + ". See '@ray' for instructions.");
 				}
+			} else if(cmd == "color" || cmd == "color-2" || cmd == "color-3" || cmd == "color-4") {
+				// echo((string)n + ": " + m + " (" + (string)id + ")");
+				integer color_num = (integer)substr(cmd, LAST, LAST);
+				if(color_num)
+					color_num -= 1;
+				vector c = (vector)concat(delitem(argv, 0), " ");
+				colors = alter(colors, [c], color_num, color_num);
+				if(screen_color_slot == color_num && power_on)
+					setp(SCREEN, [
+						PRIM_COLOR, 1, c, 1
+					]);
 			} else if(cmd == "power" || cmd == "rate") {
 				// ignore it
 			} /*else {
