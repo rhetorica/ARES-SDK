@@ -45,7 +45,7 @@
 	[p:<key>] [n:<key>] <type-spec>
 
   - p:<key> is optional; it specifies a UUID to use for the pipe (otherwise this is generated randomly)
-  - n:<key> is optional; it overrides the pipe this will send to (required if you want complete control over the UUIDs of a pipeline)
+  - n:<key> is optional; it specifies the UUID of the next pipe in the pipeline (essential for capturing output from the final pipe)
   - the <type-spec> is one of:
        notify <program>: triggers the program using SIGNAL_NOTIFY (volatile)
 	   invoke <program>: triggers the program using SIGNAL_INVOKE (volatile)
@@ -53,8 +53,8 @@
 	   permanent <program>: triggers the program using SIGNAL_INVOKE (non-volatile)
 	   to <channel> <UUID>: sends messages to <UUID> on <channel> (non-volatile) - will not send messages to subsequent pipes
 	   from <channel> <UUID> <program>: listens for messages from <UUID> on <channel> and invokes <program> (non-volatile) - will not pass on messages from prior pipes; specify <UUID> as NULL_KEY to listen to messages from any object; be aware that the user key provided by 'from' will be the object UUID rather than the owning avatar
-	   transport: simply passes messages to the output pipe (non-volatile)
-	   print: simply passes messages to the output pipe (volatile)
+	   transport: simply passes messages to the next pipe (non-volatile)
+	   print: simply passes messages to the next pipe (volatile)
 	   <program>: if no type identifier is included, the pipe is assumed to be a volatile SIGNAL_INVOKE pipe
   
   file_open() automatically creates a special pipe which is functionally identical to a volatile SIGNAL_NOTIFY pipe, but automatically removes the linebreaks at the start of the buffer caused by print()
