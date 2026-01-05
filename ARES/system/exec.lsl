@@ -754,7 +754,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 							read_length = file_length - file_offset;
 						file_read(file_pipe, file_name, (string)file_offset + " " + (string)read_length);
 					} else { // file not found or file empty
-						print(file_user, file_user, "No file: " + file_name);
+						print(file_user, file_user, "exec: not found: " + file_name);
 						file_close(file_pipe);
 						// task_end(file_pipe);
 					}
