@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.2.3"
+#define CLIENT_VERSION "0.2.4"
 #define CLIENT_VERSION_TAGS "alpha"
 
 list feeds;
@@ -171,7 +171,10 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			string headline;
 			pipe_read(ins, headline);
 			
-			if(~strpos(headline, "<rss") || ~strpos(headline, "<feed")) {
+			if(substr(headline, 0, 2) == "<!") {
+				headline = "(server returned HTML)";
+				print(avatar, avatar, PROGRAM_NAME + ": Failed to fetch headline from " + url);
+			} else if(~strpos(headline, "<rss") || ~strpos(headline, "<feed")) {
 				string item;
 				
 				integer item_start = strpos(headline, "<item");
@@ -228,6 +231,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					headline = gets(ni, 0);
 				}
 			}
+			
+			if(strlen(headline) > 200) // beyond the pale of what the UI can display
+				headline = substr(headline, 0, 199);
 			
 			if(headline != gets(headlines, offset)) {
 				headlines = alter(headlines, [headline], offset, offset);
