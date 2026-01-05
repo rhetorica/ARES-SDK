@@ -38,8 +38,10 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.1.1"
+#include <ARES/api/auth.h.lsl>
+#define CLIENT_VERSION "0.2.0"
 #define CLIENT_VERSION_TAGS "alpha"
+#define PERMISSION "manage"
 
 // argsplit() from find.lsl
 list argsplit(string m) {
@@ -149,7 +151,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					active_queries = delrange(active_queries, aqi - 2, aqi + 2);
 					
 					print(r_outs, r_user, buffer);
-					resolvec(r, r_ins);
+					resolve_i(r, r_ins);
 				} else {
 					echo("invalid aqi: " + m);
 				}
@@ -192,7 +194,20 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			}
 			http_fetch_reply = llGenerateKey();
 			pipe_open("p:" + (string)http_fetch_reply + " notify " + PROGRAM_NAME + " fetched"); */
-		} else if(gets(argv, 1) == "-L") {
+			print(outs, user, msg);
+			return;
+		}
+		
+		integer auth_result = sec_check(user, PERMISSION, outs, "", m);
+		
+		if(auth_result == PENDING) {
+			return;
+		} else if(auth_result == DENIED) {
+			print(outs, user, "Using " + PROGRAM_NAME + " requires the '" + PERMISSION + "' privilege.");
+			return;
+		}
+
+		if(gets(argv, 1) == "-L") {
 			// notify_program("_proc listen " + PROGRAM_NAME + " http", NULL_KEY, NULL_KEY, user);
 			http_listen("http", user);
 			callback = "";
