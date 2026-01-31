@@ -119,7 +119,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				selfname + " autolock time <secs>: automatically lock after <secs> time\n" +
 				selfname + " lock: lock local commands and menu, preventing access\n" +
 				selfname + " unlock <password>: unlock\n" +
-				selfname + " password <password>: change lock password\n";
+				selfname + " password <password>: change lock password\n" +
+				selfname + " password none|NONE|clear|remove: remove lock password\n";
 			llSleep(0.5);
 			print(outs, user, msg);
 			msg =
@@ -207,10 +208,14 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		
 		} else if(action == "lock") {
 			string password = getdbl("policy", ["password"]);
-			if(password == "" || password == JSON_INVALID) {
+			if(password == JSON_INVALID)
+				password = "";
+				
+			/*if(password == "" || password == JSON_INVALID) {
 				m = "* unlock";
 				jump restart_main;
-			} else {
+			} else */
+			{
 				setdbl("policy", ["lock"], "1");
 				msg = "Unit locked.";
 				
@@ -222,13 +227,17 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		} else if(action == "unlock") {
 			string password = getdbl("policy", ["password"]);
 			string attempt = concat(delrange(argv, 0, 1), " ");
-			if(password == "" || password == JSON_INVALID) {
+			if(password == JSON_INVALID)
+				password = "";
+			
+			/*if(password == "" || password == JSON_INVALID) {
 				msg = "Cannot lock console: no password set.";
 				setdbl("policy", ["lock"], "0");
 				announce("lock-0");
 				io_tell(NULL_KEY, C_LIGHT_BUS, "unlocked");
 				notify_program("security power", outs, NULL_KEY, user);
-			} else if(attempt != password) {
+			} else */
+			if(attempt != password) {
 				msg = "Incorrect password.";
 				announce("denied");
 				io_tell(NULL_KEY, C_LIGHT_BUS, "locked");
@@ -341,7 +350,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					}
 				} else if(action == "password") {
 					string password = concat(delrange(argv, 0, 1), " ");
-					if(password == "NONE" || password == "none")
+					if(password == "NONE" || password == "none" || password == "clear" || password == "remove")
 						password = "";
 					setdbl("policy", ["password"], password);
 					if(password == "") {
