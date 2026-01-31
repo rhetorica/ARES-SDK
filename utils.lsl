@@ -10,7 +10,7 @@
    *                                                         *
    *                     UTILS COMPONENT                     *
    *                                                         *
-   *  Copyright, (C) Nanite Systems Corp., 1984-85, 2017-25  *
+   *  Copyright, (C) Nanite Systems Corp., 1984-85, 2017-26  *
    *                                                         *
    *     Copyright, (C) University of Michigan 1977-1981     *
    *                                                         *
@@ -405,5 +405,8 @@ string hex(integer bits) {
 
 // SOUND_DEFAULT: a placeholder sound, meant to complement SL's TEXTURE_DEFAULT
 #define SOUND_DEFAULT "f1adc36c-4c3f-081b-4ab2-fa5105d80561"
+
+// mem_sum(): string describing current memory state
+#define mem_sum() ("[" + llGetScriptName() + "] " + (string)llGetFreeMemory() + " bytes free; " + (string)llGetUsedMemory() + " used (" + (string)((integer)(100 * llGetUsedMemory() / llGetMemoryLimit())) + "%)")
 
 #endif // UTILS
