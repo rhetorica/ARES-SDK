@@ -44,7 +44,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		string msg = "";
 		string action = gets(argv, 1);
 		if(argc == 1 || action == "help") {
-			msg = "Syntax: " + PROGRAM_NAME + " <action>";
+			msg = PROGRAM_NAME + " version " + CLIENT_VERSION + " (" + CLIENT_VERSION_TAGS + ")"
+				+ "\nUsage: " + PROGRAM_NAME + " <action> [<arguments>]"
+				+ "\nSupported actions:"
+				+ "\n    help: this message"
+			;
 		}
 		
 		if(msg != "")
