@@ -1,0 +1,225 @@
+
+PATH PROTOCOL VERSION 2.0
+
+2026-01-23
+
+To be introduced in ARES 0.5.7, the PATH protocol (PHASE Augmented Through HTTP) is a hybrid filesystem model for data storage systems in Second Life. It builds on the PHASE (Prim-Handle Abstract Storage Engine) protocol and the WEBFS file access mechanism originated in ARES 0.4.4.
+
+The main benefits of PATH over PHASE are as follows:
+
+ - Storage devices track their accessor systems and can reach out to the accessor in the event of an address change
+ - Data transfer over HTTP re-uses the WEBFS protocol, alleviating the need for the ARES _storage daemon to support two fully independent filesystems (the main reason for the change)
+ - Data transfer over HTTP supports larger pagination chunks (4K), further allowing for increased speed where memory is available
+ - Storage devices can be accessed from outside of SL if desired
+
+As with PHASE 1.x, all standard communications happen on channel 1608011905. The message format is:
+
+	<handle> <command> <argument ...>
+
+<handle> is an arbitrary string, typically a UUID. The supported <command>s are:
+
+	system-to-storage: connect disconnect
+	
+	storage-to-system: version reset access deleted new update denied
+
+The <argument>s are <command>-specific.
+
+No side channels are required for PATH. All directory and file I/O occurs via HTTP.
+
+Although the PHASE and PATH protocols both use the same external interface, the 'access' message provided by the PATH service specifies the HTTP URL that should be used. A PATH storage device should send the 'denied' message if any unsupported messages are encountered.
+
+In practice it is unlikely that incompatibility between PHASE and PATH will be encountered by end users, since as of this writing PHASE is exclusively used by ARES local storage.
+
+
+PATH MESSAGES
+
+<handle> connect <mode>
+
+	system -> storage
+	
+	where <mode> is one of: ro rd rw
+	
+	Initiates a connection with the specified access level. The storage device should respond with an "access" command (below), and store the host UUID and granted level of permission for future reference. The modes are defined as "read only" (ro), "read and delete" (rd), or "full access" (rw).
+	
+	At this point, the storage device should also check through all existing connections and confirm that the hosts involved still exist (that is, llGetOwnerKey(id) != id). Failing that, delete those connections.
+	
+	However, if <handle> is not an identifiable object UUID, the system is simply pinging and does not want to alter the state of any existing connections. A storage device that wants to be seen by the inquiring party (e.g. for public use) should respond with a "version" message; otherwise, no response is required.
+
+
+<handle> version <version> <label>
+
+	storage -> system
+	
+	Sent in response to "connect" when <handle> is NULL_KEY. The reply handle should also be NULL_KEY.
+	
+	<version> is an implementation-specific string up to 64 characters in length with no spaces, e.g. "ARES-_path-0.5.7"
+	
+	
+	<label> is a human-readable (space-containing) descriptor of the volume.
+
+
+<handle> reset <label>
+
+	storage -> system
+	
+	The storage device has been rebooted and has lost its active connections list. Any system that recognizes the storage device's address should re-send the "connect" message (above).
+	
+	Under PATH, the system should iterate through the list of known mounts to see if the originating object's UUID matches a volume that is currently believed to be mounted. This solves the general problem of storage getting demounted after login/rez. The provided <label>, if present, may be used to more precisely identify the source.
+	
+	This message should also be generated during the PATH driver's on_rez() and changed(CHANGED_REGION) events, to prompt accessors to request a new URL.
+
+
+<handle> access <mode> <unit> <label> <URL>
+
+	storage -> system
+	
+	Responds to a request to a "connect" command (above). 
+	
+	where <mode> is one of: ro rd rw
+	
+	The storage device should indicate the level of access it is willing/capable of giving the system. It should also store the host UUID and granted level of permission for future reference. The useful modes are defined as "read only" (ro), "read and delete" (rd), or "full access" (rw). A mode of "none" indicates the connection was rejected and not stored.
+	
+	where <unit> is one of: b p l
+	
+	If the unit is b, then size measurements are in bytes.
+	
+	If the unit is p, then size measurements are in pages. Each page can hold up to 1024 bytes. Pages may be less than this size, in which case they are called "unsaturated" or "ragged".
+	
+	If the unit is l, then size measurements are in lines. This is the same as pages but the system should always assume lines are separated by a linebreak character. Writing to line-based storage should be done one line at a time.
+	
+	Since PATH uses the HTTP 'Range' header for data selection, use of any unit other than 'b' is strongly discouraged, as this will cause incompatibility with external (non-SL) clients.
+	
+	<label> is a freeform text label that describes the volume.
+	
+	If no access is granted, the device should send the "denied" command.
+
+	<URL> is the HTTP(S) address to which the client system should refer for file access. It must implement the portions of `webfs` used by the current storage mode. The `ro` mode is equivalent to the `static` format. Other implementation details are described in the next section.
+	
+	In normal operation the system will proceed to query <URL> to retrieve a directory listing.
+
+
+<handle> disconnect
+
+	system -> storage
+	
+	The system no longer wishes to access the device. Forget the session.
+
+
+<handle> deleted <filename>
+
+	storage -> system
+	
+	A file has been removed from the system.
+	
+	The storage device may send this spontaneously in response to an outside action. The handle should be NULL_KEY in this case.
+
+
+<handle> new <filename>
+
+	storage -> system
+	
+	A file has been added from the system.
+	
+	The storage device may send this spontaneously in response to an outside action. The handle should be NULL_KEY in this case.
+
+
+<handle> update
+
+	storage -> system
+	
+	A file has changed in stat information (size, type, desc, etc).
+
+
+<handle> denied
+
+	storage -> system
+	
+	The requested action exceeds the permissions granted.
+	
+	The storage device may send this spontaneously in response to an outside action. The handle should be NULL_KEY in this case.
+	
+	For most actions, 'denied' is not used by PATH, as the webfs operation will fail with a 403 error code.
+
+
+WEBFS
+
+Under PATH, the following standard operations are defined as taking place over HTTP using a webfs endpoint: stat, read, delete, write, append.
+
+The webfs base URL must end in a / -- this can either be the raw llRequestURL() or suffixed with a subpath given only to the system, for higher security.
+
+Directory listings are accessed at the webfs base URL, in plain text, with the format:
+
+<filename> <size>
+<filename> <size>
+<filename> <size>
+<filename> <size>
+
+This may be subject to partial access, as defined in the next section.
+
+
+Reading files
+
+To retrieve a file, or portions of a file, the system will transmit the 'Range' header and request a specific document, e.g. <base URL>foobar.txt (remembering that <base URL> ends in '/').
+
+Partial access: 'Range' is not implemented by SL and must be manually interpreted from the results of llGetHTTPHeader(query, "range") -- if 'Range' is parsed successfully, then the response code for either a directory listing or file content changes from HTTP 200 to HTTP 206.
+
+
+Deleting files
+
+Deletions are accomplished by calling:
+
+<base URL>?action=delete&file=<filename>
+
+On success the server returns an HTTP 204 code and webfs will send a 'deleted' message to any connected system. On failure the server returns a HTTP 403 code (if denied) or HTTP 404 code (if the file doesn't exist), but does NOT generate a 'denied' message (as that would have to be filtered out). If both failures would apply, 403 takes precedence over 404.
+
+
+Writing files
+
+The client sends a POST message to:
+
+<base URL>?action=write&file=<filename>
+
+The POST body is the text to commit to the file.
+
+On success the webfs will send an 'updated' message and an HTTP 204 code, or a 'new' message and HTTP 201 code (if the file did not exist) to any connected system. On failure the server returns a HTTP 403 code, but does NOT generate a 'denied' message (as that would have to be filtered out).
+
+
+Appending to files
+
+The client sends a POST message to:
+
+<base URL>?action=append&file=<filename>
+
+The POST body is the text to append to the file.
+
+On success the webfs will send an 'updated' message and an HTTP 204 code, or a 'new' message and HTTP 201 code (if the file did not exist) to any connected system. On failure the server returns a HTTP 403 code, but does NOT generate a 'denied' message (as that would have to be filtered out).
+
+This is identical to a file write, but with action=append instead of action=write.
+
+webfs is tolerant of minor misdeeds like appending to a nonexistent file.
+
+
+Statting files
+
+If the client sends:
+
+<base URL>?action=stat&file=<filename>
+
+Then the server should return an HTTP 200 or 206 code and a directory listing consisting only of the information for the specified file.
+
+A stat of the special filename * should return information about the directory listing itself:
+
+<base URL>?action=stat&file=*
+
+Statting a nonexistent file or invalid filename should return an HTTP 404 code.
+
+
+Subdirectories
+
+Future versions of webfs might support subdirectories, in which case a stat of the bare directory name or the directory name followed by /* should be interpreted as an attempt to stat the directory:
+
+<base URL>?action=stat&file=subdir
+<base URL>?action=stat&file=subdir/*
+
+Statting a nonexistent file or invalid filename should return an HTTP 404 code.
+
