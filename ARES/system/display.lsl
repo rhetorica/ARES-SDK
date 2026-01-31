@@ -453,6 +453,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				}
 			}
 		} else if(e == EVENT_INTERFACE) {
+			setp(1, [PRIM_TEXT, "", ZV, 0]);
 			power_on = (integer)getdbl("status", ["on"]);
 			position_all(FALSE);
 		} else if(e == EVENT_WARNING) {
