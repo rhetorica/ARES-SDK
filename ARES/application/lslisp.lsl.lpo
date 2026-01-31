@@ -841,7 +841,7 @@ default
         edefaultrez = llListen(2046820352, "", E, "");
         g_ = 0;
         H = "";
-        llMessageLinked(1, 3840, LslUserScript + "\n" + "0.5.4" + " " + "beta 3", "");
+        llMessageLinked(1, 3840, LslUserScript + "\n" + "0.2.6" + " " + "lang " + "0.2.3", "");
     }
 
     listen(integer llListen, string llFrand, key llGetListEntryType, string llJsonValueType)
