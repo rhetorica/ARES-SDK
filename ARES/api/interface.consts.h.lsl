@@ -203,6 +203,11 @@ activate with:
 
 // 209-245: available
 
+#define GAME_BOARD_START 210
+
+// 210-229: Tetris grid
+// 230: Tetris score. 123-126 also used.
+
 #define PERFMON_EVENTS 246
 #define PERFMON_CPU 247
 #define PERFMON_DRAW 248
