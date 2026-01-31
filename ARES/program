@@ -156,7 +156,7 @@ default {
 			L_KERNEL = llListen(C_UNASSIGNED, "", KERNEL, "");
 			PROGRAM_NUMBER = 0;
 			E_PROGRAM_NUMBER = "";
-			linked(R_KERNEL, SIGNAL_SOLICIT_ADDRESS, PROGRAM_NAME + "\n" + ARES_VERSION + " " + ARES_VERSION_TAGS, "");
+			linked(R_KERNEL, SIGNAL_SOLICIT_ADDRESS, PROGRAM_NAME + "\n" + CLIENT_VERSION + " " + CLIENT_VERSION_TAGS, "");
 			
 			#ifdef DEBUG
 				echo("[" + PROGRAM_NAME + "] waiting for PID");
