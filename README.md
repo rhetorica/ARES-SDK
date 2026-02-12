@@ -21,41 +21,13 @@ Once the SDK is installed, look for the file `ARES/application/template.lsl` as 
 Device development for ARES is similar to development for Companion, and most of the familiar processes still apply. Most development is done using the <a href="/light_bus">light bus</a>, albeit with minor differences. For the time being, starting materials can be found from the Companion 8 SDK, available for free from our store in Eisa. ARES also uses many of the <a href="/public_bus">public bus</a> commands, and compatibility with ACS devices and interference is similar to that of Companion.
 
 ### Packaging and Distribution
-The server axtest:0 in Eisa contains the `sample` package, which is a self-documenting template for creating your own packages.
-ARES package servers are not yet available for purchase. In the interim, note that any inventory items (with the exception of scripts) ctrl-dragged onto the ARES HUD will be automatically relocated to user memory, where you may act upon them.
+The server axtest:1 in Eisa contains the `sample` package, which is a self-documenting template for creating your own packages. To obtain it, use the following commands while in Eisa:
+
+```@software connect 0ad8309f-e354-e1c2-a799-b2746b8b276b
+@software update
+@software install sample```
+
+This will store the relevant files (sample-3.0.0.pkg, sample-3.0.0.ax.parc, and sample.info) in user memory (link 3) of your ARES HUD. Copy all three to your avatar inventory and modify them as you see fit. When you are done developing your project, pack all files except the .pkg manifest into the .ax.parc archive, and submit both the .pkg and .ax.parc to the package server. (Remember to change all the names and version numbers!)
 
 ### File Licenses
-Most of the files in the SDK are ASCL-iii, which is a "BSD-like" permissive open source license that allows for closed-source derivatives. However, many (especially those in the `ARES/application/` directory) fall under more restrictive licenses, as summarized below.
-
-|file|description|terms|
-|--- |--- |--- |
-|ARES/application/calc.lsl|calculator|ASCL-ii (copyleft/share-alike)|
-|ARES/application/db.lsl|database utility|ASCL-ii (copyleft/share-alike)|
-|ARES/application/define.lsl|wiki lookup|ASCL-ii (copyleft/share-alike)|
-|ARES/application/filter.lsl|vox filters|ASCL-i (modding only)|
-|ARES/application/find.lsl|grep clone (WIP)|ASCL-ii (copyleft/share-alike)|
-|ARES/application/fortune.lsl|GNU fortune frontend|ASCL-ii (copyleft/share-alike)|
-|ARES/application/fortune.h.lsl|GNU fortune frontend (dependency)|ASCL-i (modding only)|
-|ARES/application/help.lsl|manual interface|ASCL-ii (copyleft/share-alike)|
-|ARES/application/id.lsl|system configuration tool|ASCL-i (modding only)|
-|ARES/application/land.lsl|parcel and region utilities|ASCL-ii (copyleft/share-alike)|
-|ARES/application/lslisp.lsl|LSLisp programming language|ASCL-ii (copyleft/share-alike)|
-|ARES/application/mantra.lsl|self-hypnosis tool|ASCL-ii (copyleft/share-alike)|
-|ARES/application/mail.lsl|email utility|ASCL-ii (copyleft/share-alike)|
-|ARES/application/media.lsl|sound & animation playback widget|ASCL-ii (copyleft/share-alike)|
-|ARES/application/media.event.lsl|sound & animation playback widget (dependency)|ASCL-ii (copyleft/share-alike)|
-|ARES/application/news.lsl|RSS aggregator|ASCL-ii (copyleft/share-alike)|
-|ARES/application/persona.lsl|personality configuration tool|ASCL-ii (copyleft/share-alike)|
-|ARES/application/scidb.lsl|scientific database query tool|ASCL-ii (copyleft/share-alike)|
-|ARES/application/tell.lsl|sends chat messages|ASCL-ii (copyleft/share-alike)|
-|ARES/application/xset.lsl|captures standard output|ASCL-ii (copyleft/share-alike)|
-|ARES/system/exec.lsl|command shell|ASCL-i (modding only)|
-|ARES/system/exec.event.lsl|command shell (dependency)|ASCL-i (modding only)|
-|ARES/system/policy.lsl|security policies|ASCL-i (modding only)|
-|ARES/system/power.lsl|subsystem manager|ASCL-i (modding only)|
-|ARES/system/security.lsl|user access control|ASCL-i (modding only)|
-|glob.lsl|Linux filename pattern matching|Dual GPL 2.0 and MIT|
-|lslisp.lsl|LSLisp programming language|ASCL-ii (copyleft/share-alike)|
-|lslisp.h.lsl|LSLisp programming language|ASCL-ii (copyleft/share-alike)|
-
-In case of disagreements or omissions between actual files and the entries above, license declarations inside the files take precedence.
+Most of the files in the SDK are ASCL-iii, which is a "BSD-like" permissive open source license that allows for closed-source derivatives. However, many (especially those in the `ARES/application/` directory) fall under more restrictive licenses. See the opening block comment in each program for more information.
