@@ -334,7 +334,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					if(llVecDist(llGetPos(), object_pos(user)) < 20) {
 						zap_spend_total += zap_amount;
 						io_tell(user, C_PUBLIC, "charge " + (string)zap_amount);
-						e_call(C_STATUS, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " charge " + (string)(1000 * -zap_amount));
+						e_call(C_STATUS, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " status charge " + (string)(1000 * -zap_amount));
 						print(zap_outs, zap_user, PROGRAM_NAME + " zap: Sent " + (string)zap_amount + " kJ to " + llKey2Name(user));
 					}
 					set_timer("zap-finish", 2);
