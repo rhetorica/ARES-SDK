@@ -25,7 +25,8 @@ The server axtest:1 in Eisa contains the `sample` package, which is a self-docum
 
 ```@software connect 0ad8309f-e354-e1c2-a799-b2746b8b276b
 @software update
-@software install sample```
+@software install sample
+```
 
 This will store the relevant files (sample-3.0.0.pkg, sample-3.0.0.ax.parc, and sample.info) in user memory (link 3) of your ARES HUD. Copy all three to your avatar inventory and modify them as you see fit. When you are done developing your project, pack all files except the .pkg manifest into the .ax.parc archive, and submit both the .pkg and .ax.parc to the package server. (Remember to change all the names and version numbers!)
 
