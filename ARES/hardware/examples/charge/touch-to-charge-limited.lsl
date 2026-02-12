@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2025 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -36,13 +36,13 @@
 #include <utils.lsl>
 #include <objects.lsl>
 
-#define DISCHARGE_RATE 400
-#define RECHARGE_RATE 400
-#define MAX_CHARGE 9000
-#define S_START "a6a6ac7d-c655-66d6-ac5c-93766e013068"
-#define S_LOOP "f6210ab3-3c96-f2c8-7ce8-0e203eb3c27b"
-#define S_EMPTY "b29b9860-1680-ddc4-31e7-68241e2deff3"
-#define S_RECHARGED "a5dded13-1596-ff3b-cdb1-a0bb95b557e1"
+integer DISCHARGE_RATE = 400;
+integer RECHARGE_RATE = 400;
+integer MAX_CHARGE = 9000;
+string S_START = "a6a6ac7d-c655-66d6-ac5c-93766e013068";
+string S_LOOP = "f6210ab3-3c96-f2c8-7ce8-0e203eb3c27b";
+string S_EMPTY = "b29b9860-1680-ddc4-31e7-68241e2deff3";
+string S_RECHARGED = "a5dded13-1596-ff3b-cdb1-a0bb95b557e1";
 
 integer charge = 9000;
 key user;
@@ -54,7 +54,7 @@ default {
         llStopSound();
         llSetSoundQueueing(FALSE);
         llPlaySound(S_RECHARGED, 1);
-        if(llSetMemoryLimit(0x2000)) echo("OK.");
+        if(llSetMemoryLimit(0x2800)) echo("OK.");
     }
 
     touch_start(integer n) {
@@ -83,7 +83,7 @@ default {
         if(dispensing) {
             if(charge > 0) {
                 charge -= DISCHARGE_RATE;
-                tell(user, -9999999, "charge " + (string)DISCHARGE_RATE);
+                llRegionSayTo(user, -9999999, "charge " + (string)DISCHARGE_RATE);
             }
             
             if(charge <= 0) {
