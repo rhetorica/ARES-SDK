@@ -665,7 +665,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					"power_lidar-2", "setenv_daytime:-1=force,setenv=?,setenv_daytime:-1=force||setenv_ambient:2/2/2=force,setenv_bluedensity:1/1/1=force,setenv_bluehorizon:1/1/1=force,setenv_scenegamma:2=force,setenv_hazedensity:1=force,setenv_hazehorizon:0=force,setenv_maxaltitude:4000=force,setenv_densitymultiplier:2=force,setenv_distancemultiplier:2000=force,setenv_starbrightness:0=force"
 			);
 			video_in_lidar_mode = TRUE;
-		} else if(video_in_lidar_mode) {
+		} else if((!lidar_state || (optics_state && video_state)) && video_in_lidar_mode) {
 			effector_release("power_lidar");
 			effector_release("power_lidar-2");
 			llSleep(0.2);
