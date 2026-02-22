@@ -12,10 +12,10 @@ channel_lights = 105 - (integer)("0x" + llGetSubString(llGetOwner(), 29, 35));
 
 ## Device Categories
 
-| Category | Description |
-|---|---|
-| **Passive** | Listens for messages and reacts. No authentication required. Examples: status lights, eyes, reactive clothing. |
-| **Active** | Has sent `add <device>` and received `add-confirm`. May send active commands and receive active responses. |
+| Category    | Description                                                                                                              |
+|-------------|--------------------------------------------------------------------------------------------------------------------------|
+| **Passive** | Listens for messages and reacts. No authentication required. Examples: status lights, eyes, reactive clothing.           |
+| **Active**  | Has sent `add <device>` and received `add-confirm`. May send active commands and receive active responses.                |
 
 Foreign devices (not owned by the unit) must be granted access according to the unit's local access permissions.
 
@@ -126,11 +126,11 @@ Trigger a visual or audio effect on the device. The effect name is a single word
 
 Reports gender settings for a given topic.
 
-| Topic | `<value>` format |
-|---|---|
+| Topic      | `<value>` format                                               |
+|------------|----------------------------------------------------------------|
 | `physical` | `possessive,obj-possessive,subject,object,reflexive,gender-name` |
-| `mental` | `possessive,obj-possessive,subject,object,reflexive,gender-name` |
-| `voice` | `gender-name` only |
+| `mental`   | `possessive,obj-possessive,subject,object,reflexive,gender-name` |
+| `voice`    | `gender-name` only                                             |
 
 **Examples:**
 ```
@@ -151,13 +151,13 @@ gender voice male
 ### `interference-state <type>`
 The system has been exposed to ACS interference. `<type>` is a string of class characters:
 
-| Class | Effect |
-|---|---|
-| `M` | Motor control impaired |
-| `C` | Cortex operation impaired |
-| `S` | Sound/speech output impaired |
-| `N` | Sensory functions impaired |
-| `Y` | Memory access impaired |
+| Class | Effect                       |
+|-------|------------------------------|
+| `M`   | Motor control impaired       |
+| `C`   | Cortex operation impaired    |
+| `S`   | Sound/speech output impaired |
+| `N`   | Sensory functions impaired   |
+| `Y`   | Memory access impaired       |
 
 **Example:** `interference-state MCY` → motor, cortex, and memory are impaired.
 
@@ -197,21 +197,21 @@ Net power consumption in J/s. Negative during charging (power received exceeds c
 ### `subsystem <SS> 0|1`
 Subsystem `<SS>` is enabled (`1`) or disabled (`0`).
 
-| Subsystem | Value |
-|---|---|
-| `VIDEO` | 1 |
-| `AUDIO` | 2 |
-| `MOVE` | 4 |
-| `TELEPORT` | 8 |
-| `RAPID` | 16 |
-| `VOICE` | 32 |
-| `MIND` | 64 |
-| `PREAMP` | 128 |
-| `POWER_AMP` | 256 |
-| `RADIO_IN` | 512 |
-| `RADIO_OUT` | 1024 |
-| `GPS` | 2048 |
-| `IDENTIFY` | 4096 |
+| Subsystem   | Value |
+|-------------|-------|
+| `VIDEO`     | 1     |
+| `AUDIO`     | 2     |
+| `MOVE`      | 4     |
+| `TELEPORT`  | 8     |
+| `RAPID`     | 16    |
+| `VOICE`     | 32    |
+| `MIND`      | 64    |
+| `PREAMP`    | 128   |
+| `POWER_AMP` | 256   |
+| `RADIO_IN`  | 512   |
+| `RADIO_OUT` | 1024  |
+| `GPS`       | 2048  |
+| `IDENTIFY`  | 4096  |
 
 > Values changed in Companion 8.4 for consistency.
 
@@ -375,10 +375,10 @@ Request the controller to send `persona`.
 ### `policy-q <policy>`
 Request the `policy` message for a given policy.
 
-| System | Supported policies |
-|---|---|
+| System          | Supported policies                                           |
+|-----------------|--------------------------------------------------------------|
 | Companion 8.6.4 | `subsystems`, `radio`, `persona`, `apparel`, `vox`, `curfew` |
-| ARES 0.4.1 | `curfew`, `autolock`, `beacon`, `apparel`, `locked`, `radio` |
+| ARES 0.4.1      | `curfew`, `autolock`, `beacon`, `apparel`, `locked`, `radio` |
 
 ---
 
