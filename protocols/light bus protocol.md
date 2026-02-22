@@ -114,6 +114,14 @@ The unit's motors have been locked or released for a reason other than normal mo
 
 ---
 
+### `fx <effect>`
+Trigger a visual or audio effect on the device. The effect name is a single word.
+
+> **Observed values:** `spark` — trigger spark/electrical effect.
+> Other effect names are likely supported; handle unknown values gracefully.
+
+---
+
 ### `gender <topic> <value>`
 
 Reports gender settings for a given topic.
