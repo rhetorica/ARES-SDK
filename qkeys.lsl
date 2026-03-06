@@ -29,8 +29,25 @@
    
 */
 
+/*
+  QKEYS.LSL - UUID COMPRESSION FUNCTIONS
+
+  The original functions k2q and q2k were part of an experiment to encode keys inside quaternions for maximum data density.
+  
+  Unfortunately, quaternions automatically normalize themselves, corrupting any data stored irreversibly.
+  
+  A similar scheme based on two vectors might work, but it would not be as compact as the later methods in this script.
+  
+  k2q/q2k - quaternion storage
+  fui/iuf - int/float type punning
+  i2h - int to hex
+  compress_key/uncompress_key - vintage 11-char method using llUn/escapeURL()
+  encode_8/decode_8 - convert keys into 8 chars (NOT serialization safe - may fail during region crossing)
+  encode_22/decode_22 - convert keys into 16 chars
+ */
+
 rotation k2q(key k) {
-	string kt = (string)llParseStringKeepNulls(k, ["-"], []);
+	string kt = llReplaceSubString(k, "-", "");
 	/*integer e0 = (integer)("0x" & llGetSubString(kt, 0, 1)) - 126;
 	integer m0 = (integer)("0x" & llGetSubString(kt, 2, 7));
 	integer e1 = (integer)("0x" & llGetSubString(kt, 8, 9)) - 126;
@@ -87,6 +104,7 @@ float iuf(integer a) { //union integer to float
 }
 
 // int2hexdword, also by Strife Onizuka
+// to reverse, use (integer)("0x" + hexstring)
 string i2h (integer I) {
 	integer A = (I >> 2) & 0x3C000000;//not an unsigned rshift
 	integer B = (I & 0x0F000000) >>  4;
@@ -213,6 +231,10 @@ key uncompress_key(string s) {
  rhet0rica, August 9, 2021
  encodes keys into exactly 8 chars weighing 24 bytes on average
  using the new llChar() and llOrd() built-ins
+ 
+ IMPORTANT: these methods are not teleport-safe and will fail during region crossings
+ as they produce invalid unicode characters, which SL cannot serialize properly
+ the resulting crashed mono scripts need to be recompiled (!) to fix them
 */
 
 string encode_8(key k) {
