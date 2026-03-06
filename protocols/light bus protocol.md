@@ -15,7 +15,7 @@ channel_lights = 105 - (integer)("0x" + llGetSubString(llGetOwner(), 29, 35));
 | Category    | Description                                                                                                              |
 |-------------|--------------------------------------------------------------------------------------------------------------------------|
 | **Passive** | Listens for messages and reacts. No authentication required. Examples: status lights, eyes, reactive clothing.           |
-| **Active**  | Has sent `add <device>` and received `add-confirm`. May send active commands and receive active responses.                |
+| **Active**  | Has sent `add <device>` and received `add-confirm`. May send active commands and receive active responses.               |
 
 Foreign devices (not owned by the unit) must be granted access according to the unit's local access permissions.
 
@@ -126,11 +126,11 @@ Trigger a visual or audio effect on the device. The effect name is a single word
 
 Reports gender settings for a given topic.
 
-| Topic      | `<value>` format                                               |
-|------------|----------------------------------------------------------------|
+| Topic      | `<value>` format                                                 |
+|------------|------------------------------------------------------------------|
 | `physical` | `possessive,obj-possessive,subject,object,reflexive,gender-name` |
 | `mental`   | `possessive,obj-possessive,subject,object,reflexive,gender-name` |
-| `voice`    | `gender-name` only                                             |
+| `voice`    | `gender-name` only                                               |
 
 **Examples:**
 ```
