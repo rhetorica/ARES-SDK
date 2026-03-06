@@ -41,7 +41,7 @@
 #define ARES
 
 // version that OS components will report:
-#define ARES_VERSION "0.5.6.1"
+#define ARES_VERSION "0.5.7"
 #define ARES_VERSION_TAGS "beta 3"
 
 // copyright year for the OS:
@@ -95,6 +95,8 @@ string PROGRAM_NAME = "program";
 #define E_STORAGE			 "!-"
 #define C_THERMAL	   0x7a00200d
 #define E_THERMAL			 "!."
+#define C_CHASSIS	   0x7a00200e
+#define E_CHASSIS			 "!/"
 
 #define C_PROGRAM_BASE 0x7a003000
 
