@@ -1,12 +1,12 @@
 
 A. Lazuli
 Nanite Systems Communications Corporation (NANOCOM)
-April 2024
+March 2026
 
 Signals Protocol Working Group
 PUBLIC MEMO
 
-VERSION 0.4
+VERSION 0.5
 
 
 Status of this Memo
@@ -103,6 +103,27 @@ If the host returns an AV-CAPS signal (see 4.1. AVC), then the client may follow
 	connect <service> <c>
 
 sent on the query channel, where <c> is the channel number on which the host should respond, and <service> is one of the services offered by the host operator (see 5.2. AV-CAPS Services).  The host should activate the service if possible and then reply with a "ready" or "error" message (see 4.3. READY and 4.4. ERROR).
+
+
+3.3. TOUCH
+
+In certain cases it may be desirable to emulate an avatar touch event without the use of a mouse click. This can be useful for automating behavior in both script-assisted paradigms (e.g. remote piloting) and fully-scripted agent paradigms (i.e. autonomous bots).
+
+If a client sends the message:
+
+	touch <uuid>
+
+on the query channel, and <uuid> is one of:
+
+	(a) the client,
+	(b) the client's OBJECT_ROOT_KEY as determined by llGetObjectDetails(), or
+	(c) the client's owner as determined by llGetOwnerKey(),
+
+and the HW-CAPS host has some sort of generic touch response, then the host may emulate a touch event, treating <uuid> as the source of the touch event. HW-CAPS objects are not obligated to honor touch messages, and in some cases objects with touch handlers will not be able to handle generic touches like this, e.g. because further clarification is required, such as a specific element on a menu system.
+
+Nevertheless, for equipment where a plain touch event is useful, such as a door panel or plug-in power outlet, a nulladic 'touch' signal is potentially valuable.
+
+If an HW-CAPS host supports the 'touch' message, it should add the 'touch' service on channel 411 to its HWC ping response (see 4.1. HWC). This eliminates the need for basic failure messages. See also Appendix B: HW-CAPS Channels for a list of known services.
 
 
 4. Responses
@@ -270,12 +291,12 @@ The following service attachment names are illegal:
 
 8. Future Developments
 
-TBD
+Future versions of HW-CAPS will likely provide additional convenience functions to enable and support emulation of various user actions, building on the paradigm introduced with the 'touch' message (see 3.3. TOUCH).
 
 
 9. Acknowledgements
 
-TBD
+Thanks to Renyx 'Ren' Resident for inspiring the TOUCH message.
 
 
 10. Author's Address
@@ -306,49 +327,49 @@ Appendix A: HW-CAPS Purposes
 
 Inquiring clients that present a user interface documenting discovered CAPS hosts should be aware of the following purposes that those hosts could indicate:
 
- - charge: Recharges electronics.
- - security: Prevents unauthorized access, or circumvents access prevention measures.
+ - agri: Farming equipment.
+ - ammo: Refills ammunition, or can be used as ammunition.
+ - attack: Deals damage or impairs targets.
  - battery: Stores power.
+ - bio: Biological research or storage equipment.
+ - cargo: Holds goods, resources, or robots during transit.
+ - charge: Recharges electronics.
+ - chem: Conducts a chemical reaction or stores chemicals.
+ - clean: Removes contaminants.
+ - comm: Provides an interface for long-distance or human-readable communications, such as a telephone or satellite receiver.
+ - control: Integrates signals and makes decisions.
+ - cryo: Removes heat.
+ - data: Stores or transfers electronic information.
+ - defend: Thwarts or harms attackers. Do not specify 'safety' and 'defend' purposes for the same device.
+ - detect: Identifies objects meeting set criteria.
+ - engine: Generates motion for a vehicle or machine. Supersedes the 'motor' purpose.
+ - enviro: Maintains temperature, pressure, and/or humidity at target values within a space, or removes pollution. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'enviro' purpose.
+ - fabricate: Conducts manufacturing.
+ - fuel: Refills fuel, or can be used as fuel.
+ - furniture: Can be sat upon. Do not tag with 'storage' unless the furniture is multifunctional.
+ - homeostasis: Maintains temperature, pressure, and/or humidity at target values within a body, or removes toxins. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'homeostasis' purpose.
+ - hydro: Directs or utilizes the flow of water or other liquids and gasses.
+ - info: Presents human-readable information.
+ - kinematics: Animation overriders and systems that control articulation or motion of robotic equipment.
+ - light: Provides illumination. Purely decorative objects will generally use this purpose.
+ - logistic: Facilitates distribution of equipment, people, or products.
+ - medical: Diagnoses or heals organics.
+ - motor: Produces rotational movement using electromagnetism, or electricity from rotation.
+ - nav: Assists with automated driving, typically by providing directions, coordinating traffic, or serving as a travel waypoint.
+ - network: Transfers signals between other connected devices.
+ - objective: Target of a game, e.g. a capture point or flag.
  - power: Distributes power from another source.
  - repair: Fixes damage to electronics.
- - info: Presents human-readable information.
- - light: Provides illumination. Purely decorative objects will generally use this purpose.
- - furniture: Can be sat upon. Do not tag with 'storage' unless the furniture is multifunctional.
- - server: Central repository for settings or objects.
- - defend: Thwarts or harms attackers. Do not specify 'safety' and 'defend' purposes for the same device.
- - attack: Deals damage or impairs targets.
- - medical: Diagnoses or heals organics.
- - control: Integrates signals and makes decisions.
- - stasis: Stores organics in suspended animation or medical coma.
- - data: Stores or transfers electronic information.
- - logistic: Facilitates distribution of equipment, people, or products.
- - hydro: Directs or utilizes the flow of water or other liquids and gasses.
- - motor: Produces rotational movement using electromagnetism, or electricity from rotation.
- - cryo: Removes heat.
- - thermal: Generates heat.
- - homeostasis: Maintains temperature, pressure, and/or humidity at target values within a body, or removes toxins. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'homeostasis' purpose.
- - safety: Mitigates or prevents unsafe industrial or environmental conditions. Do not specify 'safety' and 'defend' purposes for the same device.
- - network: Transfers signals between other connected devices.
- - fabricate: Conducts manufacturing.
- - enviro: Maintains temperature, pressure, and/or humidity at target values within a space, or removes pollution. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'enviro' purpose.
- - chem: Conducts a chemical reaction or stores chemicals.
- - comm: Provides an interface for long-distance or human-readable communications, such as a telephone or satellite receiver.
- - nav: Assists with automated driving, typically by providing directions, coordinating traffic, or serving as a travel waypoint.
- - detect: Identifies objects meeting set criteria.
- - cargo: Holds goods, resources, or robots during transit.
- - clean: Removes contaminants.
- - engine: Generates motion for a vehicle or machine. Supersedes the 'motor' purpose.
- - kinematics: Animation overriders and systems that control articulation or motion of robotic equipment.
- - vehicle: Holds individuals and provides transit. Do not combine with purposes necessary for a vehicle to function (e.g. 'motor' or 'engine')
- - travel: Facilitates movement in some unspecified way other than a vehicle, e.g. a teleporter or jump pad.
- - ammo: Refills ammunition, or can be used as ammunition.
- - fuel: Refills fuel, or can be used as fuel.
  - respawn: Location where an avatar or object reappears after a defeat.
- - objective: Target of a game, e.g. a capture point or flag.
- - bio: Biological research or storage equipment.
- - storage: General storage. Do not tag with 'cargo' purpose. Only tag with 'furniture' if the object contains both storage and sittable surfaces (e.g. a combined chair and bookcase).
- - agri: Farming equipment.
+ - safety: Mitigates or prevents unsafe industrial or environmental conditions. Do not specify 'safety' and 'defend' purposes for the same device.
  - science: General scientific research or surveying equipment, not otherwise specified. Do not tag with 'bio', 'chem', or 'agri'.
+ - security: Prevents unauthorized access, or circumvents access prevention measures.
+ - server: Central repository for settings or objects.
+ - stasis: Stores organics in suspended animation or medical coma.
+ - storage: General storage. Do not tag with 'cargo' purpose. Only tag with 'furniture' if the object contains both storage and sittable surfaces (e.g. a combined chair and bookcase).
+ - thermal: Generates heat.
+ - travel: Facilitates movement in some unspecified way other than a vehicle, e.g. a teleporter or jump pad.
+ - vehicle: Holds individuals and provides transit. Do not combine with purposes necessary for a vehicle to function (e.g. 'motor' or 'engine')
 
 
 Appendix B: HW-CAPS Channels
@@ -361,6 +382,7 @@ orix-alt      9360              Alternate channel for orix
 pds           5201              Nanite Systems Power Distribution System
 facet         5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
 caps          411               CAPS itself (this document; optional)
+touch         411               The device supports the HW-CAPS 'touch' extension (see 3.3. TOUCH)
 acs           360               Autonomy Control Systems CCU protocol (http://develop.nanite-systems.com/resources/ACS-charging.pdf)
 command       1*                Generic term for command handler using a name-based prefix (commonly used by collars)
 trigger       0                 Generic term for any detection of commands issued in normal local chat
@@ -459,7 +481,7 @@ Appendix D. HW-CAPS Sample Implementation
 
 Full Copyright Statement
 
-Copyright (C) Nanite Systems Communications Corporation (2024).  All Rights Reserved.
+Copyright (C) Nanite Systems Communications Corporation (2024-2026).  All Rights Reserved.
 
 This document and translations of it may be copied and furnished to others, and derivative works that comment on or otherwise explain it or assist in its implementation may be prepared, copied, published and distributed, in whole or in part, without restriction of any kind, provided that the above copyright notice and this paragraph are included on all such copies and derivative works.  However, this document itself may not be modified in any way, such as by removing the copyright notice or references to the Nanite Systems Communications Corporation or other Nanite Systems organizations, except as needed for the purpose of developing communications standards in which case the procedures for copyrights defined in the Internet Standards process must be followed, or as required to translate it into languages other than English.
 
