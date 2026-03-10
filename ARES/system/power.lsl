@@ -36,11 +36,13 @@
 #define CLIENT_VERSION ARES_VERSION
 #define CLIENT_VERSION_TAGS ARES_VERSION_TAGS
 
+integer C_LIGHT_BUS;
 #define C_PUBLIC 0xff676981
 
 integer EPS_active = 0;
 integer power_on = 1;
 integer max_state;
+integer power_state_last;
 integer power_state;
 integer forbidden_state;
 string power_systems;
@@ -132,6 +134,11 @@ apply_state(integer update, integer report_state) {
 				else
 					effector_restrict("power_" + psname, sys_rlv);
 				//echo("@" + sys_rlv);
+			}
+			
+			integer was_enabled = ((power_state_last & (1 << psi)) != FALSE);
+			if(was_enabled != system_enabled) {
+				io_broadcast(C_LIGHT_BUS, "subsystem " + psname + " " + (string)system_enabled);
 			}
 		}
 		
@@ -281,7 +288,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		cmd_user = user;
 		// echo((string)argc);
 		if(argc == 1) {
-			apply_state(0, 1);
+			apply_state(FALSE, TRUE);
 			e_call(C_STATUS, E_SIGNAL_CALL, (string)outs + " " + (string)user + " status power");
 			llSleep(0.022);
 			e_call(C_THERMAL, E_SIGNAL_CALL, (string)outs + " " + (string)user + " thermal power");
@@ -420,7 +427,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					jump restart_main;
 					
 					// main(src, SIGNAL_NOTIFY, "power system " + sys, outs, ins, user);
-					// apply_state(1, 0);
+					// apply_state(TRUE, FALSE);
 					// the SIGNAL_NOTIFY should take care of applying state and status update
 				}
 				/*power_on = (sys == "on");
@@ -439,10 +446,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						msg = "No power profile: " + act;
 					} else {
 						setdbl("m:profile", ["f"], act);
+						power_state_last = power_state;
 						power_state = (integer)power_profile;
 						ann = "subsystem-profile";
 						msg = "Power profile '" + act + "' loaded.";
-						apply_state(1, 0);
+						apply_state(TRUE, FALSE);
 					}
 				}
 			} else if(sys == "delete") {
@@ -465,6 +473,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					msg = "To save a power profile, please specify a name.";
 				}
 			} else if(sys == "all") {
+				power_state_last = power_state;
+				
 				if(act == "toggle" || act == "") {
 					integer old_power_state = power_state;
 					power_state = ~power_state & max_state;
@@ -480,8 +490,10 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					ann = "subsystem-1";
 				}
 				
-				apply_state(1, 0);
+				apply_state(TRUE, FALSE);
 			} else if((pss = getjs(power_system_names, [sys])) != JSON_INVALID) {
+				power_state_last = power_state;
+			
 				integer system_forbidden = (forbidden_state & (1 << (integer)pss)) != FALSE;
 			
 				integer mask = 1 << (integer)pss;
@@ -510,7 +522,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				
 				// echo("Changing " + pss + " #?# " + (string)mask + " -> " + (string)power_state);
 				
-				apply_state(1, 0);
+				apply_state(TRUE, FALSE);
 			} else {
 				msg = "no subsystem: " + sys;
 			}
@@ -539,8 +551,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			
 			if(cmd == "forbidden") {
 				// change in forbidden rules
+				power_state_last = power_state;
 				forbidden_state = (integer)getdbl("status", ["forbidden"]);
-				apply_state(1, 0);
+				apply_state(TRUE, FALSE);
 			} else if(cmd == "charged") {
 				// integer charge_bootable = (status == "y");
 				// no code required here - will occur automatically
@@ -779,10 +792,17 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		// hook_events([EVENT_TELEPORT, EVENT_ON_REZ, EVENT_REGION_CHANGE]);
 		hook_events([EVENT_ON_REZ]);
 		
+		if(llGetAttached())
+			C_LIGHT_BUS = 105 - (integer)("0x" + substr(avatar, 29, 35));
+		else
+			C_LIGHT_BUS = 105 - (integer)("0x" + substr(KERNEL, 29, 35));
+		
 		string s_status = llLinksetDataRead("status");
 		string s_power = llLinksetDataRead("power");
 		power_on = (integer)getjs(s_status, ["on"]);
 		forbidden_state = (integer)getjs(s_status, ["forbidden"]);
+		
+		power_state_last = 0;
 		power_state = (integer)getjs(s_status, ["state"]);
 		power_draw = (float)getjs(s_status, ["draw"]);
 		power_systems = getjs(s_power, ["system"]);
@@ -800,10 +820,15 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		echo("[" + PROGRAM_NAME + "] (DEBUG) available subsystems: " + (string)psi);
 		#endif
 		
-		apply_state(1, 0);
+		apply_state(TRUE, FALSE);
 	} else if(n == SIGNAL_EVENT) {
 		integer e = (integer)m;
 		if(e == EVENT_ON_REZ) {
+			if(llGetAttached())
+				C_LIGHT_BUS = 105 - (integer)("0x" + substr(avatar, 29, 35));
+			else
+				C_LIGHT_BUS = 105 - (integer)("0x" + substr(KERNEL, 29, 35));
+		
 			notify_program("security power", avatar, NULL_KEY, avatar);
 		}
 	/*} else if(n == SIGNAL_EVENT) {

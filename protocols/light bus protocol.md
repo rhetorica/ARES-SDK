@@ -195,7 +195,13 @@ Net power consumption in J/s. Negative during charging (power received exceeds c
 ---
 
 ### `subsystem <SS> 0|1`
-Subsystem `<SS>` is enabled (`1`) or disabled (`0`).
+_(ARES 0.5.7+)_ Subsystem named `<SS>` is enabled (`1`) or disabled (`0`).
+
+Standard subsystems are: amplifier, athletics, base, flight, hearing, hud, identify, lidar, location, locomotion, mind, motors, optics, radio, reach, receive, speech, teleport, transmit, video, voice, wifi.
+
+This replaces the historic Companion numeric convention (below), which was only suitable for hardcoded numbers. Truly paranoid developers might consider supporting both, although not all standard ARES subsystems had direct Companion equivalents.
+
+_(Companion)_ Subsystem index `<SS>` is enabled (`1`) or disabled (`0`).
 
 | Subsystem   | Value |
 |-------------|-------|
@@ -213,7 +219,23 @@ Subsystem `<SS>` is enabled (`1`) or disabled (`0`).
 | `GPS`       | 2048  |
 | `IDENTIFY`  | 4096  |
 
-> Values changed in Companion 8.4 for consistency.
+Prior to Companion 8.4, the ordering was:
+
+| Subsystem   | Value |
+|-------------|-------|
+| `VIDEO`     | 1     |
+| `AUDIO`     | 2     |
+| `RADIO_IN`  | 4     |
+| `MOVE`      | 8     |
+| `TELEPORT`  | 16    |
+| `RAPID`     | 32    |
+| `VOICE`     | 64    |
+| `MIND`      | 128   |
+| `PREAMP`    | 256   |
+| `RADIO_OUT` | 512   |
+| `GPS`       | 1024  |
+| `IDENTIFY`  | 2048  |
+| `POWER_AMP` | 4096  |
 
 ---
 
