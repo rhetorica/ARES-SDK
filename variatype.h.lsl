@@ -37,8 +37,17 @@
  *
  */
 
+// define this to make variatype() accept a list of link numbers to use rather than start + count:
+// #define VT_NONCONSECUTIVE
+
 // define this to prevent positioning (for pre-positioned labels):
 // #define VT_NO_POSITIONING
+
+// define this to add a color vector to the end of variatype's arguments:
+// #define VT_COLOR
+
+// define this to add an alpha float to the end of variatype's arguments (requires VT_COLOR):
+// #define VT_ALPHA
 
 // otherwise use this:
 #ifndef VT_NO_POSITIONING
@@ -53,6 +62,7 @@ float pixel_scale;
 #define MURKY_TRUTH 3
 #define CLOCK_SKEW 4
 #define CHICANERY 5
+#define POLITO 6
 
 #if VT_FONT == PSYCHIC_INSTABILITY
 // Psychic Instability
@@ -63,15 +73,19 @@ list FONT = [TEXTURE_TRANSPARENT, "fa2be25b-b84e-ae3a-39b7-be9159562538", "9586e
 
 #elif VT_FONT == IGNEOUS_EXTRUSIVE
 // Igneous Extrusive
-list FONT = [TEXTURE_TRANSPARENT, "62974d79-964a-5f6f-da7a-fa71d0729fbf", "3e775d1a-47b7-987d-950e-76d86dba4d65", "ff7b660d-4404-041f-34ec-29c99fe2299d",
-			  TEXTURE_TRANSPARENT, "8ad2c9e1-f8d6-744b-daef-5dbe06e07477", "29d05527-9dff-2595-6d43-179558027cfa", "a251039a-3fdf-70c1-9664-14ef2a0e4558"];
+list FONT = [TEXTURE_TRANSPARENT, "62974d79-964a-5f6f-da7a-fa71d0729fbf",
+			 "3e775d1a-47b7-987d-950e-76d86dba4d65", "ff7b660d-4404-041f-34ec-29c99fe2299d",
+			  TEXTURE_TRANSPARENT, "8ad2c9e1-f8d6-744b-daef-5dbe06e07477",
+			  "29d05527-9dff-2595-6d43-179558027cfa", "a251039a-3fdf-70c1-9664-14ef2a0e4558"];
 
 #define FONT_charwidths "21111111111111111111111111111111111222211122121122222222221122222222222221222332222222232221112212222212211213222212122322211121"
 
 #elif VT_FONT == MURKY_TRUTH
 // Murky Truth
-list FONT = [TEXTURE_TRANSPARENT, "b17c85ad-dbb4-5e08-0bcd-f9bcc911958d", "63d0b7da-3ed9-4eb2-6878-317d4b810f16", "266f9977-0a97-f4b2-0dd8-58b54b6a6858",
-			 TEXTURE_TRANSPARENT, "2edab492-6ddc-5c9f-3bbc-e2ee1cb4d5f0", "d1fad11b-97fd-de31-2dbe-aad04a3b51ab", "fc1fd1b3-f691-3e16-a0d5-5415375e4d6e"];
+list FONT = [TEXTURE_TRANSPARENT, "b17c85ad-dbb4-5e08-0bcd-f9bcc911958d",
+			 "63d0b7da-3ed9-4eb2-6878-317d4b810f16", "266f9977-0a97-f4b2-0dd8-58b54b6a6858",
+			 TEXTURE_TRANSPARENT, "2edab492-6ddc-5c9f-3bbc-e2ee1cb4d5f0",
+			 "d1fad11b-97fd-de31-2dbe-aad04a3b51ab", "fc1fd1b3-f691-3e16-a0d5-5415375e4d6e"];
 
 // Murky Truth uses a different character width table from PI and IX. The capital N is only 2 cells wide instead of 3.
 #define FONT_charwidths "21111111111111111111111111111111111222211122121122222222221122222222222221222322222222232221112212222212211213222212122322211121"
@@ -86,15 +100,32 @@ list FONT = [TEXTURE_TRANSPARENT, "aa087ee9-ede1-5bdc-4196-5a8f7122ca34",
 
 #elif VT_FONT == CLOCK_SKEW || !defined(VT_FONT)
 // Clock Skew
-list FONT = ["8dcd4a48-2d37-4909-9f78-f7a9eb4ef903", "66f0c644-a340-9772-f870-9b30051db9d9", "57b9b8a5-ccb1-72e0-2429-916d25ace382", "d8903765-b390-4707-0397-18d558fcdfa5",
-			 "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903", "ad63bb36-f8e1-074a-24a2-40fcd1ea8baa", "bd83ac93-51c8-6515-c98f-33ca21c6516a", "251c5c6f-14c2-cd25-6e91-e9c08e06a677"];
+list FONT = ["8dcd4a48-2d37-4909-9f78-f7a9eb4ef903", "66f0c644-a340-9772-f870-9b30051db9d9",
+			 "57b9b8a5-ccb1-72e0-2429-916d25ace382", "d8903765-b390-4707-0397-18d558fcdfa5",
+			 "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903", "ad63bb36-f8e1-074a-24a2-40fcd1ea8baa",
+			 "bd83ac93-51c8-6515-c98f-33ca21c6516a", "251c5c6f-14c2-cd25-6e91-e9c08e06a677"];
 
 // Clock Skew's characters use 2 cells for r, f, t, /, \, {, and }, and 3 cells for @
 string FONT_charwidths = "21111111111111111111111111111111111222211122121222222222221122223222222221222322222222232221212212222222211213222222222322221221";
+
+#elif VT_FONT == POLITO
+// Polito
+list FONT = ["8dcd4a48-2d37-4909-9f78-f7a9eb4ef903", "40ca84d1-6596-b5e3-aafa-85c639f0d0bd",
+			 "37cf6be0-dd08-754a-9a6c-9de84c97091f", "3861dd5f-c673-92a7-6ad5-83a219a96d8e",
+			 "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903", "0f85a8d0-e4f6-aa4e-5c3e-0ba85412c1da",
+			 "c59692fc-e0e4-13f2-4afe-a73764231dda", "24c53976-cf4c-6cbd-b0fb-5f9d9405b3eb"];
+
+string FONT_charwidths = "21111111111111111111111111111111111222211122121222222222221122223222222221222322222222232221212212222212211213222212222322211121";
+
 #endif
 
-// with VT_NO_POSITIONING: variatype(text, start_prim, prim_limit)
-// otherwise: variatype(text, start_prim, prim_limit, origin) and remember to set pixel_scale
+/*
+   syntax:
+   variatype(text, ( start_prim, prim_limit | prims )[, origin][, color[, alpha]])
+   if VT_NONCONSECUTIVE is in use, 'prims' is expected
+   otherwise, 'start_prim' and 'prim_limit' are expected
+*/
+
 
 // if using positioning, Riders 8 Face vert/horiz prims are expected;
 // other shapes will require adaptation
@@ -102,13 +133,21 @@ string FONT_charwidths = "211111111111111111111111111111111112222111221212222222
 // send all setp commands twice? (helps against packet loss)
 integer DOUBLE_PRINT;
 
-variatype(string text, integer start_prim, integer prim_limit
-#ifndef VT_NO_POSITIONING
-, vector origin
-#endif
-#ifdef VT_COLOR
-, vector color
-#endif
+variatype(string text, // actual ASCII text to display
+	#ifndef VT_NONCONSECUTIVE
+		integer start_prim, integer prim_limit // start link number + count
+	#else
+		list prims // list of link number indices
+	#endif
+	#ifndef VT_NO_POSITIONING
+		, vector origin // <0, x, y> coordinates; text grows along negative second axis
+	#endif
+	#ifdef VT_COLOR
+		, vector color // <r, g, b> float
+		#ifdef VT_ALPHA
+			, float alpha // float 0.0-1.0
+		#endif
+	#endif
 ) {
 	text += " ";
 	integer c = 0; // character
@@ -117,7 +156,11 @@ variatype(string text, integer start_prim, integer prim_limit
 	integer prim;
 	integer face;
 	integer cmax = strlen(text) + 1;
-	integer fmax = prim_limit << 3;
+	#ifndef VT_NONCONSECUTIVE
+		integer fmax = prim_limit << 3;
+	#else
+		integer fmax = count(prims) << 3;
+	#endif
 	list acts;
 	while(c < cmax && f < fmax) {
 		integer c0 = llOrd(text, c);
@@ -136,7 +179,11 @@ variatype(string text, integer start_prim, integer prim_limit
 		string section = gets(FONT, si);
 		// echo("c=" + (string)c + " printed (" + llChar(c0) + llChar(c1) + "), width " + (string)(p0 + p1) + " column offset " + (string)p);
 		
-		prim = start_prim + (f >> 3);
+		#ifndef VT_NONCONSECUTIVE
+			prim = start_prim + (f >> 3);
+		#else
+			prim = geti(prims, (f >> 3));
+		#endif
 		face = f & 7;
 		
 		if(!face) {
@@ -152,14 +199,19 @@ variatype(string text, integer start_prim, integer prim_limit
 			acts += [
 				PRIM_LINK_TARGET, prim,
 				#ifndef VT_NO_POSITIONING
-				PRIM_SIZE, <64, 16, 0> * pixel_scale,
-				PRIM_POSITION, (origin - <0, 64 * (f >> 3), 0>) * pixel_scale,
-				#ifdef VISIBLE
-				PRIM_ROTATION, VISIBLE,
-				#endif
+					PRIM_SIZE, <64, 16, 0> * pixel_scale,
+					PRIM_POSITION, (origin - <0, 64 * (f >> 3), 0>) * pixel_scale,
+					#ifdef VISIBLE
+						PRIM_ROTATION, VISIBLE,
+					#endif
 				#endif
 				#ifdef VT_COLOR
-				PRIM_COLOR, ALL_SIDES, color, 1,
+					PRIM_COLOR, ALL_SIDES, color, 
+					#ifdef VT_ALPHA
+						alpha,
+					#else
+						1,
+					#endif
 				#endif
 				PRIM_TEXTURE, ALL_SIDES, TEXTURE_TRANSPARENT, ZV, ZV, 0
 			];
@@ -221,19 +273,39 @@ variatype(string text, integer start_prim, integer prim_limit
 		}
 	}
 	
-	integer last_prim = start_prim + prim_limit - 1;
-	if(prim < last_prim) {
-		while(prim < last_prim) {
-			++prim;
-			acts += [
-				PRIM_LINK_TARGET, prim,
-				#ifndef VT_NO_POSITIONING
-				PRIM_POSITION, (origin - <0, 64 * (prim - start_prim), 0>) * pixel_scale,
-				#endif
-				PRIM_TEXTURE, ALL_SIDES, TEXTURE_TRANSPARENT, ZV, ZV, 0
-			];
+	// blank out unused prims:
+	
+	#ifdef VT_NONCONSECUTIVE
+		if(prim != geti(prims, LAST)) {
+			integer pi = index(prims, prim);
+			integer pc = count(prims);
+			while(pi < pc) {
+				++pi;
+				prim = geti(prims, pi);
+				acts += [
+					PRIM_LINK_TARGET, prim,
+					#ifndef VT_NO_POSITIONING
+					PRIM_POSITION, (origin - <0, 64 * pi, 0>) * pixel_scale,
+					#endif
+					PRIM_TEXTURE, ALL_SIDES, TEXTURE_TRANSPARENT, ZV, ZV, 0
+				];
+			}
 		}
-	}
+	#else
+		integer last_prim = start_prim + prim_limit - 1;
+		if(prim < last_prim) {
+			while(prim < last_prim) {
+				++prim;
+				acts += [
+					PRIM_LINK_TARGET, prim,
+					#ifndef VT_NO_POSITIONING
+					PRIM_POSITION, (origin - <0, 64 * (prim - start_prim), 0>) * pixel_scale,
+					#endif
+					PRIM_TEXTURE, ALL_SIDES, TEXTURE_TRANSPARENT, ZV, ZV, 0
+				];
+			}
+		}
+	#endif
 	setp(0, acts);
 	if(DOUBLE_PRINT) {
 		llSleep(0.01);
