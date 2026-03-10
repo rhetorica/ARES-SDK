@@ -1,6 +1,6 @@
 # Light Bus Protocol
 
-The Light Bus is the main communications system for interactions between the **main controller (MC)** and compatible hardware. Originally designed for attached peripherals carrying lighting-related state (color, power), it has grown into a full protocol covering recharging, user authentication, and device control.
+The Light Bus is the main communications system for interactions between the system and compatible hardware. Originally designed for attached peripherals carrying lighting-related state (color, power), it has grown into a full protocol covering recharging, user authentication, and device control.
 
 ## Channel
 
@@ -38,9 +38,27 @@ Ports are particle targets used to enhance appearance when connected to other de
 
 ---
 
+## Handshaking
+
+The following exchanged messages are always available, but are not really 'passive' in any semantic sense:
+
+---
+
+### `ping`
+
+Sent from a device to the system to detect if the system is present. The system will reply with `pong`.
+
+---
+
+### `pong`
+
+Sent from the system to the device in response to a `ping` query.
+
+---
+
 ## Passive Messages
 
-Sent automatically by the controller. Available to all devices, including unauthenticated ones.
+Sent automatically by the system. Available to all devices, including unauthenticated ones.
 
 ---
 
@@ -50,7 +68,7 @@ Safety bolts have been engaged or disengaged (corresponding to the bolts policy)
 - `on` → lock peripheral in place: `@detach=n`
 - `off` → release detachment restriction: `@detach=y`
 
-The automatic bolts mode (release when powered down) is handled by the controller. Devices do not need to check power state before reacting.
+The automatic bolts mode (release when powered down) is handled by the system. Devices do not need to check power state before reacting.
 
 > Also sent to newly-authenticated active devices immediately after `add-confirm`.
 
@@ -268,23 +286,23 @@ These require the device to have completed authentication (`add` → `add-confir
 ---
 
 ### `add <device>`
-Register this device at address `<device>` (one-word mnemonic, e.g. `icon`, `battery`). Send on `on_rez()`, `attach()`, or in response to `probe`. Controller replies with `add-confirm` or `add-fail`.
+Register this device at address `<device>` (one-word mnemonic, e.g. `icon`, `battery`). Send on `on_rez()`, `attach()`, or in response to `probe`. The system will reply with `add-confirm` or `add-fail` as appropriate.
 
 ### `add <device> <version>`
 Variant with version check. Used to block old, incompatible devices. Required for HUD and shield devices.
 
 ### `add <device> <version> <PIN>`
-For firmware-update-capable devices. The controller's package manager will recognize the device as the updatable package `<device>_<version>`. Required for the chassis device. During update, `<PIN>` is passed to the installer in cleartext alongside the root UUID.
+For firmware-update-capable devices. The system's package manager will recognize the device as the updatable package `<device>_<version>`. Required for the chassis device. During update, `<PIN>` is passed to the installer in cleartext alongside the root UUID.
 
 ---
 
 ### `add-command <command>`
-Register a federated `@` command with the controller. Active until the device is removed or re-probed. When a user invokes the command, the controller sends a `command` message to the device.
+Register a federated `@` command with the system. Active until the device is removed or re-probed. When a user invokes the command, the system sends a `command` message to the device.
 
 ---
 
 ### `auth <device> <key>`
-Ask the controller to verify that user `<key>` has local access. If authorized, the controller responds with `accept <key>`. If not, the controller notifies the user directly; the device receives no response.
+Ask the system to verify that user `<key>` has local access. If authorized, the system responds with `accept <key>`. If not, the system notifies the user directly; the device receives no response.
 
 > Do not cache auth results. Obtain permission immediately upon user contact; do not queue pending actions.
 
@@ -296,15 +314,15 @@ Check if `<user2>` is at least `<user1>`'s rank. If so, sends `accept` for `<use
 ---
 
 ### `carrier <device> <key>`
-Report that the unit is being carried by `<key>` using handle `<device>`. When carrying stops, send with `<key>` = `NULL_KEY`. Accepted from any attachment. Also sent by controller in response to `carrier-q`.
+Report that the unit is being carried by `<key>` using handle `<device>`. When carrying stops, send with `<key>` = `NULL_KEY`. Accepted from any attachment. Also sent by the system in response to `carrier-q`.
 
 ### `carrier-q`
-Request the controller to send `carrier`.
+Request the system to send `carrier`.
 
 ---
 
 ### `color-q`
-Request the controller to send `color`, `color-2`, `color-3`, and `color-4`.
+Request the system to send `color`, `color-2`, `color-3`, and `color-4`.
 
 ---
 
@@ -350,24 +368,24 @@ Remove a setting from the config store.
 ---
 
 ### `devices`
-Request a list of connected devices. Controller responds with one or more `device-list` messages.
+Request a list of connected devices. The system will respond with one or more `device-list` messages.
 
 > If the ATOS security module is installed, it will also send `weapon-active` to the destination key.
 
 ---
 
 ### `follow-q`
-Request the controller to send `follow`.
+Request the system to send `follow`.
 
 ---
 
 ### `gender-q <topic>`
-Query gender settings. `<topic>` must be `physical`, `mental`, or `voice`. Controller responds with `gender`.
+Query gender settings. `<topic>` must be `physical`, `mental`, or `voice`. The system will respond with `gender`.
 
 ---
 
 ### `internal <device> <number> <key> <message>`
-Relay a linked message through the controller to trigger an internal system function.
+_(Companion)_ Relay a linked message through the system to trigger an internal system function.
 
 - To send a system command, use `<number>` = `0` and the interacting user's UUID as `<key>` (or `NULL_KEY` for root access).
 - **Example** — turn off the unit:
@@ -377,6 +395,7 @@ Relay a linked message through the controller to trigger an internal system func
 
 > This command will not work unless the device has authenticated with `add`.
 > In Companion 8.5+, all internal calls are wrapped as `TASK_START` messages for backward compatibility.
+> In ARES, `internal` calls are replaced with bespoke messages, such as `command`.
 
 ---
 
@@ -390,7 +409,7 @@ Loads are shown by the `power` command under *external loads*.
 ---
 
 ### `persona-q`
-Request the controller to send `persona`.
+Request the system to send `persona`.
 
 ---
 
@@ -409,22 +428,22 @@ Signal that prim `<key>` can provide port functionality of type `<type>`, to be 
 
 Supported types: `class`, `power`, `audio-in`, `audio-out`, `data-1`, `data-2`
 
-> When the *controller* sends this message it means a redirect to another device; see `port-real` and `port-connect`.
+> When the system sends this message it means a redirect to another device; see `port-real` and `port-connect`.
 
 ### `port-connect <type>`
-Request to connect a cable to a port of the given type. The controller responds with either:
+Request to connect a cable to a port of the given type. The system responds with either:
 - `port <type> <key>` — resend the query to `<key>` (the actual port host)
 - `port-real <type> <key>` — use `<key>` as the particle destination and begin effects
 
 If forwarded to a port host, the host is guaranteed to follow up with `port-real`.
 
 ### `port-disconnect <type>`
-Signal that the port of the given type is no longer in use. The connecting device must stop sending particles. The controller will correctly forward this to the port host.
+Signal that the port of the given type is no longer in use. The connecting device must stop sending particles. The system will correctly forward this to the port host.
 
 ---
 
 ### `power-q`
-Request the controller to send `on` or `off` as appropriate, plus `bolts`.
+Request the system to send `on` or `off` as appropriate, plus `bolts`.
 
 ---
 
@@ -437,7 +456,7 @@ Cancel a previously registered `add-command`.
 ---
 
 ### `subsystem-q <subsystem>`
-Check whether `<subsystem>` is enabled. Controller responds with `subsystem`. See subsystem table above for parameter values.
+Check whether `<subsystem>` is enabled. The system responds with `subsystem`. See subsystem table above for parameter values.
 
 > Before Companion 8.5m3, the parameter was ignored and only video (0) status could be queried.
 
@@ -455,7 +474,7 @@ See combat protocols.
 
 ## Active Messages — MC to Device
 
-Sent by the controller to authenticated devices.
+Sent by the system to devices that have previously successfully authenticated with the `add` message.
 
 ---
 
@@ -514,7 +533,7 @@ User `<id>` has requested the device's status. Send a status summary to `<id>` o
 ### `poke <id>`
 User `<id>` has requested the device's menu interface. Present a UI (`llDialog()`, hotlinked text, Facet welcome, etc.) to `<id>`.
 
-> If using hotlinked text, note that it is incompatible with the controller's chat forwarding mode. Warn users if relevant.
+> _Mostly historical:_ Hotlinked text is incompatible with chat-forwarding (output pipe) mode.
 
 ---
 
@@ -539,7 +558,7 @@ Something is connecting to this device. Trigger connect effects.
 Something is disconnecting from this device. Trigger disconnect effects.
 
 ### `port-real <type> <key>`
-Send cable particles to `<key>`. Sent in response to `port-connect` when the controller itself hosts the port.
+Send cable particles to `<key>`. Sent in response to `port-connect` when the system itself hosts the port. Under Companion this could happen if the main controller had ports attached to it; ARES will generate this message to spoof directly sending cable particles to the root prim of the main controller attachment if no port of the specified `<type>` is available.
 
 ---
 
@@ -623,14 +642,15 @@ Same semantics as the MC-to-device versions. See above.
 
 ## Device-Specific Active Messages
 
-Messages for specific HUD/controller peripheral types.
+Messages for specific peripheral types.
 
 ---
 
 ### Screen Console Manager (`_screen`) Messages
+These messages are unique to the Companion _console-screen attachment.
 
 #### `add-section <name> <width>`
-Add a new section to the Screen Console Manager HUD. `<name>` should be a short unique ID (e.g. the device address). `<width>` is the number of icons to display. Controller replies with `add-section-confirm`.
+Add a new section to the Screen Console Manager HUD. `<name>` should be a short unique ID (e.g. the device address). `<width>` is the number of icons to display. The system replies with `add-section-confirm`.
 
 > Not supported by Native Console (`_native`) HUD — use `icon-q` instead.
 > Sections and buttons cannot be removed or modified once added.
@@ -639,7 +659,7 @@ Add a new section to the Screen Console Manager HUD. `<name>` should be a short 
 The section was successfully created. Proceed with `add-button` messages.
 
 #### `add-button <section-name> <icon> <command ...>`
-Add a button to a section. `<icon>` is a UUID for a white-and-transparent texture (≤ 128×128px). `<command ...>` (space-separated) is sent as a `COMMAND` system message when pressed. Controller replies with `add-button-confirm` or `add-button-fail`.
+Add a button to a section. `<icon>` is a UUID for a white-and-transparent texture (≤ 128×128px). `<command ...>` (space-separated) is sent as a `COMMAND` system message when pressed. The system replies with `add-button-confirm` or `add-button-fail`.
 
 > If the section doesn't exist, no error is produced. Re-send `add-section` if you're unsure.
 
@@ -650,17 +670,19 @@ Button successfully added to `<section-name>`.
 Button could not be added (section is full).
 
 #### `config-q`
-Sent by `_console-screen` HUD to main controller to request the `_console-config` file.
+Sent by the Companion `_console-screen` HUD to the operating system to request the `_console-config` file.
 
 #### `config-update`
-Sent by controller to `_console-screen` HUD. A new config file is available — delete the old copy, then send `config-q` to request the replacement.
+Sent by Companion to the `_console-screen` HUD. A new config file is available — delete the old copy, then send `config-q` to request the replacement.
 
 ---
 
 ### Hatch Messages
 
+These are used to control the battery hatch on the main controller. Historically this was a separate light bus device embedded into the lid itself, although nearly all ARES controllers implement it directly inside their main firmware (ctrl.lsl) or via a delegate thereof.
+
 #### `hatch open|close`
-Open or close the battery hatch. Sent from controller to hatch device.
+Open or close the battery hatch. Sent from the system to the hatch device.
 
 #### `hatch-blocked`
 The battery is positioned in a way that prevents the hatch from closing. The controller will open the hatch or refuse to close it upon receiving this.
@@ -673,10 +695,10 @@ Sent by the hatch to the battery. Ask the battery if it would block the hatch; i
 ### Shield Messages
 
 #### `interference <type> <intensity> <duration> <source_key>`
-Sent by the shield device to the controller. Describes the interference that could not be mitigated.
+Sent by the shield device to the system after it is overwhelmed by a `shield` message, describing the interference that could not be mitigated. No message should be sent if all radiation was successfully mitigated.
 
 #### `shield <duration> <intensity> <id> <type>`
-Sent by the controller to the shield device. Interference of `<type>` from source `<id>` has been received — mitigate what is possible, then return an `interference` message with the remaining impact.
+Sent by the system to the shield device after interference of `<type>` from source `<id>` has been received. The shield should mitigate what is possible, then return an `interference` message describing any remaining radiation.
 
 ---
 
