@@ -37,18 +37,30 @@
 #ifndef _ARES_INTERFACE_H_
 #define _ARES_INTERFACE_H_
 
-// **** interface daemon ****
+// functions for calling interface and variatype daemons
+
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define call_interface(_outs, _user, _args) daemon_to_daemon(E_INTERFACE, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " interface " + _args)
+	#define call_variatype(_outs, _user, _args) daemon_to_daemon(E_VARIATYPE, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " variatype " + _args)
+	
+	#ifndef call_baseband
+		#define call_baseband(_outs, _user, _args) daemon_to_daemon(E_BASEBAND, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " baseband " + _args)
+	#endif
+#else
+	#define call_interface(_outs, _user, _args) e_call(C_INTERFACE, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " interface " + _args)
+	#define call_variatype(_outs, _user, _args) e_call(C_VARIATYPE, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " variatype " + _args)
+	
+	#ifndef call_baseband
+		#define call_baseband(_outs, _user, _args) e_call(C_BASEBAND, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " baseband " + _args)
+	#endif
+#endif
 
 // interface_sound(): play a system sound effect to the unit only (must be named in LSD:interface.sound)
-#define interface_sound(_name) e_call(C_INTERFACE, E_SIGNAL_CALL, \
-						(string)avatar + " " + (string)avatar + " interface sound " + _name)
-
+#define interface_sound(_name) call_interface(avatar, avatar, "sound " + (string)(_name));
 
 // fixed_warning(slot, msg): display a fixed warning message on the UI (see values in interface.consts.h.lsl)
 #define fixed_warning(_slot, _msg) \
 			system(SIGNAL_TRIGGER_EVENT, (string)EVENT_WARNING + " " + (string)(_slot) + " " + (string)(_msg))
-
-// **** variatype daemon ****
 
 /* alert(): create an alert message on the HUD
 		_message: the text to show (must fit in 12 variatype cells, approx. 96 chars)
@@ -80,12 +92,9 @@
 #define ALERT_BUTTONS_DISMISS 3
 #define ALERT_BUTTONS_AUTOEXEC 6
 
-#define alert(_message, _icon, _color, _buttons, ...) e_call(C_VARIATYPE, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " variatype alert " + _message + "\n" + (string)(_icon) + "\n" + (string)(_color) + "\n" + (string)(_buttons) + "\n" + jsarray(__VA_ARGS__))
-
-// send a HUD alert message from a daemon:
-#define daemon_alert(_message, _icon, _color, _buttons, ...) daemon_to_daemon(E_VARIATYPE, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " variatype alert " + _message + "\n" + (string)(_icon) + "\n" + (string)(_color) + "\n" + (string)(_buttons) + "\n" + jsarray(__VA_ARGS__))
+#define alert(_message, _icon, _color, _buttons, ...) call_variatype(NULL_KEY, NULL_KEY, "alert " + _message + "\n" + (string)(_icon) + "\n" + (string)(_color) + "\n" + (string)(_buttons) + "\n" + jsarray(__VA_ARGS__))
 
 // command_prompt(outs, ins, user, message, command_prefix): prompt a user for parameters to append to command_prefix, then execute it. A space is automatically inserted between command_prefix and the user-supplied parameters.
-#define command_prompt(_outs, _ins, _user, _message, _command_prefix) e_call(C_BASEBAND, E_SIGNAL_CALL, (string)_outs + " " + (string)_user + " baseband prompt " + jsobject(["message", _message, "ins", _ins, "command", _command_prefix]))
+#define command_prompt(_outs, _ins, _user, _message, _command_prefix) call_baseband(_outs, _user, "prompt " + jsobject(["message", _message, "ins", _ins, "command", _command_prefix]))
 
 #endif // _ARES_INTERFACE_H_

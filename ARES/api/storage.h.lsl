@@ -43,6 +43,12 @@
 	replaces ARES/api/fs.h.lsl
 */
 
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define call_storage(_outs, _user, _args) daemon_to_daemon(E_STORAGE, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " storage " + _args)
+#else
+	#define call_storage(_outs, _user, _args) e_call(C_STORAGE, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " storage " + _args)
+#endif
+
 #define FILE_PAGE_LENGTH 1024
 #define FILE_LINE_WIDTH 1024
 
@@ -87,11 +93,11 @@
 // write text directly into a filename (provided the target filesystem supports and allows it). 
 // fill _pipe using pipe_write(), then call this to send the data.
 // NOTE: the file will be OVERWRITTEN. Use file_append() if you do not want this.
-#define file_write(_filename, _pipe) e_call(C_STORAGE, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " storage write " + (_filename) + " " + (string)(_pipe))
-#define file_append(_filename, _pipe) e_call(C_STORAGE, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " storage append " + (_filename) + " " + (string)(_pipe))
+#define file_write(_filename, _pipe) call_storage(NULL_KEY, NULL_KEY, "write " + (_filename) + " " + (string)(_pipe))
+#define file_append(_filename, _pipe) call_storage(NULL_KEY, NULL_KEY + "append " + (_filename) + " " + (string)(_pipe))
 
 // delete a file, provided the filesystem supports and allows it.
-#define file_delete(_filename) e_call(C_STORAGE, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " storage delete " + (_filename))
+#define file_delete(_filename) call_storage(NULL_KEY, NULL_KEY, "delete " + (_filename))
 
 // OTHER FILESYSTEM ACTIVITIES
 
@@ -104,6 +110,6 @@
 #define list_all_files() jskeys(llLinksetDataRead("fs:root"))
 
 // refresh a source:
-#define storage_refresh(_source, _callback, _user) e_call(C_STORAGE, E_SIGNAL_CALL, (string)(_callback) + " " + (string)(_user) + " storage refresh " + (_source))
+#define storage_refresh(_source, _callback, _user) call_storage(_callback, _user, "refresh " + (_source))
 
 #endif // _ARES_STORAGE_H_

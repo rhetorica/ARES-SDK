@@ -39,6 +39,13 @@
 
 // **** IO daemon ****
 
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	// "io" is required here for kernel message routing, though the daemon ignores it:
+	#define call_io(_pipe, _user) daemon_to_daemon(E_IO, SIGNAL_CALL, (string)(_pipe) + " " + (string)(_user) + " io")
+#else
+	#define call_io(_pipe, _user) e_call(C_IO, E_SIGNAL_CALL, (string)(_pipe) + " " + (string)(_user))
+#endif
+
 // create a pipeline; parameter should be a list of strings, each of which describes a pipe to create
 /*
   // individual pipes use the format:
@@ -107,11 +114,14 @@ string read(key pipe) {
 
 // print(outs, user, message): print message to pipe outs on behalf of user
 
+#define print(_pipe_key, _user, _message) { llLinksetDataWrite("p:" + (string)(_pipe_key), llLinksetDataRead("p:" + (string)(_pipe_key)) + _message + SAFE_EOF); call_io(_pipe_key, _user); }
+/*
 #if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
 	#define print(_pipe_key, _user, _message) { llLinksetDataWrite("p:" + (string)(_pipe_key), llLinksetDataRead("p:" + (string)(_pipe_key)) + _message + SAFE_EOF); linked(R_KERNEL, SIGNAL_CALL, E_IO + E_PROGRAM_NUMBER + (string)(_pipe_key) + " " + (string)(_user) + " io", ""); }
 #else
 	#define print(_pipe_key, _user, _message) { llLinksetDataWrite("p:" + (string)(_pipe_key), llLinksetDataRead("p:" + (string)(_pipe_key)) + _message + SAFE_EOF); tell(DAEMON, C_IO, E_SIGNAL_CALL + E_PROGRAM_NUMBER + (string)(_pipe_key) + " " + (string)(_user)); }
 #endif
+*/
 
 // send messages directly through io on an arbitrary channel (needed for RLV relay, AX, etc.):
 #define io_tell(_target, _channel, _message) tell(DAEMON, C_IO, E_SIGNAL_TELL + E_PROGRAM_NUMBER + (string)(_target) + " " + (string)(_channel) + " " + _message)
@@ -121,10 +131,6 @@ string read(key pipe) {
 #define pipe_write(_pipe_key, _message) llLinksetDataWrite("p:" + (string)(_pipe_key), llLinksetDataRead("p:" + (string)(_pipe_key)) + _message + SAFE_EOF)
 
 // tell _io to process a pipe without adding anything to it:
-#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
-	#define pipe_push(_pipe_key, _user) { linked(R_KERNEL, SIGNAL_CALL, E_IO + E_PROGRAM_NUMBER + (string)(_pipe_key) + " " + (string)(_user) + " io", ""); }
-#else
-	#define pipe_push(_pipe_key, _user) { tell(DAEMON, C_IO, E_SIGNAL_CALL + E_PROGRAM_NUMBER + (string)(_pipe_key) + " " + (string)(_user)); }
-#endif
+#define pipe_push(_pipe_key, _user) call_io(_pipe_key, _user)
 
 #endif // _ARES_IO_H_

@@ -39,6 +39,12 @@
 
 // **** repair daemon ****
 
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define call_repair(_outs, _user, _args) daemon_to_daemon(E_REPAIR, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " repair " + _args)
+#else
+	#define call_repair(_outs, _user, _args) e_call(C_REPAIR, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " repair " + _args)
+#endif
+
 /* Standard community damage types proposed by Nexii Malthus: https://wiki.secondlife.com/wiki/Category:LSL_Combat2
 */
 
@@ -63,6 +69,6 @@
 	
 	if DQD or OOC mode is enabled, the unit's integrity number will not change, but other consequences like masochistic arousal and shield damage may still occur
 */
-#define deal_damage(_amount, _type, _source) e_call(C_REPAIR, E_SIGNAL_CALL, (string)_source + " " + (string)_source + " repair inflict " + (_type) + " " + (string)(_amount));
+#define deal_damage(_amount, _type, _source) call_repair(_source, _source, "inflict " + (_type) + " " + (string)(_amount));
 
 #endif // _ARES_REPAIR_H_

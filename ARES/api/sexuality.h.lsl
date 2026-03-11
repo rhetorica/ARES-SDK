@@ -42,5 +42,13 @@
 #define C_LUST_FX -1010101
 #define LUST_INTERNAL_CHANNEL 9996900
 
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define call_sexuality(_outs, _user, _args) daemon_to_daemon(E_SEXUALITY, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " sexuality " + _args)
+#else
+	#define call_sexuality(_outs, _user, _args) e_call(C_SEXUALITY, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " sexuality " + _args)
+#endif
+
+#define update_cryolubricant() call_sexuality(avatar, avatar, "cryolubricant")
+
 list SEXUALITY_MODES = ["disabled", "narrative", "interactive", "masochism"];
 #endif // #ifndef _ARES_SEXUALITY_H_

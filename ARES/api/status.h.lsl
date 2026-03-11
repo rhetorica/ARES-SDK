@@ -59,12 +59,17 @@
    
 */
 
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define call_status(_outs, _user, _args) daemon_to_daemon(E_STATUS, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " status " + _args)
+#else
+	#define call_status(_outs, _user, _args) e_call(C_STATUS, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " status " + _args)
+#endif
+
 // create/modify or remove a power load:
 #define set_power_load(_device, _load_name, _wattage) setdbl("chassis", ["load", _device + "__" + _load_name], (string)_wattage)
 #define delete_power_load(_device, _load_name) { if(getdbl("chassis", ["load", _device + "__" + _load_name]) != JSON_INVALID) deletedbl("chassis", ["load", _device + "__" + _load_name]); }
 // (remember to trigger a status update afterward, as described in the comment above)
 
-#define status_update() e_call(C_STATUS, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " status update");
-// #define external_teleport() e_call(C_STATUS, E_SIGNAL_CALL, NULL_KEY + " " + NULL_KEY + " status external-tp");
+#define status_update() call_status(NULL_KEY, NULL_KEY, "update");
 
 #endif // _ARES_STATUS_H_

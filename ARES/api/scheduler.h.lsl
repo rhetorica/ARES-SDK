@@ -43,6 +43,12 @@
 	This asks the scheduler to notify your program when something important happens. The list of supported events can be found in the <ARES/a> header.
 */
 
+#if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
+	#define call_scheduler(_outs, _user, _args) daemon_to_daemon(E_SCHEDULER, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " scheduler " + _args)
+#else
+	#define call_scheduler(_outs, _user, _args) e_call(C_SCHEDULER, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " scheduler " + _args)
+#endif
+
 // hooking and unhooking events (provide a list of EVENT_* constants):
 #if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
 	#define query_hooks() kernel(SIGNAL_QUERY_HOOKS, "")

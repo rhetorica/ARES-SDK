@@ -71,9 +71,11 @@
 #if defined(RING_NUMBER) && RING_NUMBER <= R_DAEMON
 	#define play_sound(_name) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector sound " + _name)
 	#define announce(_announcement) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector announce " + _announcement)
+	#define call_effector(_outs, _user, _args) daemon_to_daemon(E_EFFECTOR, SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " effector " + _args)
 #else
 	#define play_sound(_name) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector sound " + _name)
 	#define announce(_announcement) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " effector announce " + _announcement)
+	#define call_effector(_outs, _user, _args) e_call(C_EFFECTOR, E_SIGNAL_CALL, (string)(_outs) + " " + (string)(_user) + " effector " + _args)
 #endif
 
 #endif // _ARES_EFFECTOR_H_

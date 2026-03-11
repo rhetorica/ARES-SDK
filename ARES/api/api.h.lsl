@@ -82,6 +82,7 @@
 #include <ARES/api/scheduler.h.lsl>
 #include <ARES/api/storage.h.lsl>
 #include <ARES/api/tasks.h.lsl>
+#include <ARES/api/thermal.h.lsl>
 #include <ARES/api/database.h.lsl>
 #include <ARES/api/request.h.lsl>
 
