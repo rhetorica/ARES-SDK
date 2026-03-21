@@ -40,6 +40,7 @@ list filters = [
 	// filter		layer
 	"censor",		0,
 	"replace",		0,
+	"phrase",		0,
 	"slang",		0,
 	"nonverbal",	1,
 	"translate",	1,
@@ -174,6 +175,30 @@ string f_replace(string message, string dictionary_name) {
 		message = delstring(message, 0, 0);
 		--limit;
 	}
+	
+	return out;
+}
+
+string f_phrase(string message, string dictionary_name) {
+	string dictionary = getdbl("filter", ["phrase", dictionary_name]);
+	if(dictionary == JSON_INVALID) {
+		echo("[filter] warning: phrase replacement table " + dictionary_name + " does not exist. See 'help phrase'");
+		return message;
+	}
+	
+	string out = "^" + message + "$";
+	list keys = llList2ListStrided(js2list(dictionary), 0, LAST, 2);
+	list values = llList2ListStrided(llDeleteSubList(js2list(dictionary), 0, 0), 0, LAST, 2);
+	
+	integer ki = count(keys);
+	while(ki--) 
+		out = replace(out, gets(keys, ki), gets(values, ki));
+	
+	if(llOrd(out, 0) == 0x5e) // '^'
+		out = delstring(out, 0, 0);
+	
+	if(llOrd(out, LAST) == 0x24) // '$'
+		out = delstring(out, LAST, LAST);
 	
 	return out;
 }
@@ -793,6 +818,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						message = f_censor(message, flags);
 					} else if(filter == "replace") {
 						message = f_replace(message, flags);
+					} else if(filter == "phrase") {
+						message = f_phrase(message, flags);
 					} else if(filter == "nonverbal") {
 						message = f_nonverbal(message, flags);
 					} else if(filter == "rot13") {
