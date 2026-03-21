@@ -1,7 +1,7 @@
 
-PATH PROTOCOL VERSION 2.0
+PATH PROTOCOL VERSION 2.0.1
 
-2026-01-23
+2026-03-20
 
 To be introduced in ARES 0.5.7, the PATH protocol (PHASE Augmented Through HTTP) is a hybrid filesystem model for data storage systems in Second Life. It builds on the PHASE (Prim-Handle Abstract Storage Engine) protocol and the WEBFS file access mechanism originated in ARES 0.4.4.
 
@@ -31,6 +31,13 @@ Although the PHASE and PATH protocols both use the same external interface, the 
 In practice it is unlikely that incompatibility between PHASE and PATH will be encountered by end users, since as of this writing PHASE is exclusively used by ARES local storage.
 
 
+TERMS
+
+	standard connection: a session initiated by an object in the same sim via the PHASE channel; if this object ceases to exist, then the connection is broken (rediscovery may be attempted)
+	
+	web connection: a session initiated purely using WEBFS; creation, discovery, and session expiry behavior are TBD
+	
+
 PATH MESSAGES
 
 <handle> connect <mode>
@@ -39,11 +46,11 @@ PATH MESSAGES
 	
 	where <mode> is one of: ro rd rw
 	
-	Initiates a connection with the specified access level. The storage device should respond with an "access" command (below), and store the host UUID and granted level of permission for future reference. The modes are defined as "read only" (ro), "read and delete" (rd), or "full access" (rw).
+	Initiates a standard connection with the specified access level. The storage device should respond with an "access" command (below), and store the host UUID and granted level of permission for future reference. The modes are defined as "read only" (ro), "read and delete" (rd), or "full access" (rw).
 	
-	At this point, the storage device should also check through all existing connections and confirm that the hosts involved still exist (that is, llGetOwnerKey(id) != id). Failing that, delete those connections.
+	At this point, the storage device should also check through all existing standard connections and confirm that the hosts involved still exist (that is, llGetOwnerKey(id) != id). Failing that, delete those connections.
 	
-	However, if <handle> is not an identifiable object UUID, the system is simply pinging and does not want to alter the state of any existing connections. A storage device that wants to be seen by the inquiring party (e.g. for public use) should respond with a "version" message; otherwise, no response is required.
+	However, if <handle> is NULL_KEY, the system is simply pinging and does not want to alter the state of any existing connections. A storage device that wants to be seen by the inquiring party (e.g. for public use) should respond with a "version" message; otherwise, no response is required.
 
 
 <handle> version <version> <label>
