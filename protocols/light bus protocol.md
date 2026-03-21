@@ -182,6 +182,10 @@ The system has been exposed to ACS interference. `<type>` is a string of class c
 At the end of interference, `interference-state ` is sent (with a trailing space).
 
 ---
+### `light <frac>`
+_(Obsolete)_ The system's power usage is currently `<frac>`, where 1.0 indicates all subsystems are currently engaged and 0.0 indicates all subsystems are currently disengaged. This message is not sent when the system is powered off. Expected by certain very old NS peripherals instead of the `on` message.
+
+---
 
 ### `name <name>`
 The unit's current full name, including prefix. Sent when the name changes.
@@ -194,6 +198,8 @@ Peripherals with interactive features should rename themselves to `<full unit na
 System main power state. No message is sent for auxiliary power transitions.
 
 > This may be re-sent without the power state actually changing (e.g. in response to `power-q`). Store the last known state and check for a real change before triggering boot/shutdown actions.
+
+> Very old NS peripherals like the SynthOPTICAL eyes and the first versions of the Ornamental System Lights expected to receive a `light` update message instead of `on`. The `off` message is still recognized by these early products.
 
 ---
 
