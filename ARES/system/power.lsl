@@ -212,7 +212,7 @@ apply_EPS(integer EPS_on) {
 	
 	if(!power_on) {
 		effector_rlv(replace(getdbl("power", ["EPS", "rlv"]), "?", change_char));
-	
+		
 		list EPS_notify = js2list(getdbl("power", ["EPS", "notify"]));
 		integer En = count(EPS_notify);
 		while(En--) {
