@@ -43,10 +43,6 @@
 #define CLIENT_VERSION "1.0.2"
 #define CLIENT_VERSION_TAGS "release"
 
-#define call_interface(_outs, _user, _msg) \
-	system(SIGNAL_CALL, E_INTERFACE + E_PROGRAM_NUMBER \
-		+ (string)_outs + " " + (string)_user + " interface " + (_msg));
-
 list savers = ["blank", "toasters", "stars", "bounce"];
 
 // #define STARS_TEX "e8105c7f-2595-6bd9-54fb-690764dcac3a"
