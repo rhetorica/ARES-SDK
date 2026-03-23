@@ -34,8 +34,8 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.0.1"
-#define CLIENT_VERSION_TAGS "placeholder"
+#define CLIENT_VERSION "0.1.0"
+#define CLIENT_VERSION_TAGS "beta 1"
 
 integer extend_rlv;
 
@@ -136,6 +136,10 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						msg = "Unknown option: " + subaction;
 						jump done_rlv;
 					}
+					
+					msg = "RLV extension mode is now " + gets(["off", "on"], extend_rlv) + ".";
+					if(extend_rlv)
+						msg = " Gestures, chat links, or other devices that depend on speaking on other channels will NOT work until this is disabled. Use ONLY in concert with a compatible gag.";
 					
 					setdbl("pipet", ["rlv"], (string)extend_rlv);
 					update_extend_rlv();

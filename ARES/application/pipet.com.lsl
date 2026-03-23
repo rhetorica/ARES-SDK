@@ -54,10 +54,10 @@
 							// if this is the first redir channel, enable forwarding
 							if(!count(gag_channels)) {
 								notify_program("_input override-output-pipe " + rlv_pipe, NULL_KEY, avatar, avatar);
-								echo("@sendchannel_sec:" + (string)user_channel + "=n");
+								echo("@sendchat=n,sendchannel_sec=n,sendchannel_sec:" + (string)user_channel + "=n");
 							}
 							
-							echo("@sendchannel_except:" + (string)channel + "=n");
+							// echo("@sendchannel_except:" + (string)channel + "=n");
 							
 							gag_channels += channel;
 						} else {
@@ -67,12 +67,12 @@
 							if(~gci)
 								gag_channels = delitem(gag_channels, gci);
 							
-							echo("@sendchannel_except:" + (string)channel + "=y");
+							// echo("@sendchannel_except:" + (string)channel + "=y");
 							
 							// if that was the last channel, disable forwarding
 							if(!count(gag_channels)) {
 								notify_program("_input override-output-pipe " + NULL_KEY, NULL_KEY, avatar, avatar);
-								echo("@sendchannel_sec:" + (string)user_channel + "=y");
+								echo("@sendchat=y,sendchannel_sec=y,sendchannel_sec:" + (string)user_channel + "=y");
 							}
 						}
 					}
