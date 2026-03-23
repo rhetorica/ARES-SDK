@@ -57,12 +57,12 @@ update_extend_rlv() {
 		echo("@notify:" + (string)rlv_C + ";redir=y");
 		llListenRemove(rlv_L);
 		rlv_L = 0;
-		integer gci = count(gag_channels);
+		/* integer gci = count(gag_channels);
 		while(gci--) {
 			integer c = geti(gag_channels, gci);
 			echo("@sendchannel_except:" + (string)c + "=y");
-		}
-		echo("@sendchannel_sec:" + (string)user_channel + "=y");
+		} */
+		echo("@sendchannel_sec:" + (string)user_channel + "=y,sendchannel_sec=y,sendchat=y");
 		
 		gag_channels = [];
 	} else {
@@ -92,7 +92,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		} else {
 			list argv = splitnulls(m, " ");
 			integer argc = count(argv);
-			string msg = "";
+			string msg;
 			string action = gets(argv, 1);
 			if(action == "help") {
 				msg = PROGRAM_NAME + " version " + CLIENT_VERSION + " (" + CLIENT_VERSION_TAGS + ")"
@@ -139,7 +139,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					
 					msg = "RLV extension mode is now " + gets(["off", "on"], extend_rlv) + ".";
 					if(extend_rlv)
-						msg = " Gestures, chat links, or other devices that depend on speaking on other channels will NOT work until this is disabled. Use ONLY in concert with a compatible gag.";
+						msg += " Gestures, chat links, or other devices that depend on speaking on other channels will NOT work until this is disabled. Use ONLY in concert with a compatible gag.";
 					
 					setdbl("pipet", ["rlv"], (string)extend_rlv);
 					update_extend_rlv();
