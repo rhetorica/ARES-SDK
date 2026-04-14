@@ -191,6 +191,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		#ifdef DEBUG
 			echo("[" + PROGRAM_NAME + "] init event");
 		#endif
+		llSetTimerEvent(10);
 	} else if(n == SIGNAL_UNKNOWN_SCRIPT) {
 		echo("[" + PROGRAM_NAME + "] failed to run '" + m + "' (kernel could not find the program specified)");
 	} else {
@@ -198,4 +199,5 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	}
 }
 
+#define EXT_EVENT_HANDLER "ARES/application/salvage.event.lsl"
 #include <ARES/program>
