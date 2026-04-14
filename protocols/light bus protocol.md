@@ -166,6 +166,12 @@ gender voice male
 
 ---
 
+### `integrity <current> <chassis-strength> <max-integrity>`
+
+The unit's integrity is currently `<current>`, where `<current>` is a floating-point value between `0.0` and `1.0` representing the percentage of the unit's health. `<chassis-strength>` is a floating-point value between `0.0` and `1.0`, representing the amount of hit points it will have at max health and `<max-integrity>` is a floating-point value between `0.0` and `1.0` that shows how much health the unit can heal up to, which automatically decreases as self-repair occurs until a unit can repair externally.
+
+---
+
 ### `interference-state <type>`
 The system has been exposed to ACS interference. `<type>` is a string of class characters:
 
@@ -287,7 +293,7 @@ Triggered by: vox filter processing, or manual `!working`/`!done` cortex command
 
 ## Active Messages — Device to MC
 
-These require the device to have completed authentication (`add` → `add-confirm`).
+These require the device to have completed authentication (`add` → `add-confirm`). However, some messages (such as ones ending in `-q`) can be sent without authentication to request information from the system.
 
 ---
 
@@ -390,6 +396,12 @@ Query gender settings. `<topic>` must be `physical`, `mental`, or `voice`. The s
 
 ---
 
+### `integrity-q`
+
+Request the system to send `integrity`.
+
+---
+
 ### `internal <device> <number> <key> <message>`
 _(Companion)_ Relay a linked message through the system to trigger an internal system function.
 
@@ -401,7 +413,7 @@ _(Companion)_ Relay a linked message through the system to trigger an internal s
 
 > This command will not work unless the device has authenticated with `add`.
 > In Companion 8.5+, all internal calls are wrapped as `TASK_START` messages for backward compatibility.
-> In ARES, `internal` calls are replaced with bespoke messages, such as `command`.
+> In ARES, `internal` calls are replaced with bespoke messages, such as `command`. Using an internal call will automatically eject the device from ARES with a message to the user that the device is incompatible with ARES.
 
 ---
 
