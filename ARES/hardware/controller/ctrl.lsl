@@ -653,6 +653,7 @@ default {
 			if(block_tp) {
 				block_tp = 0;
 			} else if(power_on && !soothe) {
+				llWhisper(360, "ACS,interfere,CN,1,1");
 				#ifdef OVERRIDE_TP
 				linked(LINK_THIS, 0, "tp", "");
 				#else
