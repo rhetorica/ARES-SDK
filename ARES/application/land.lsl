@@ -90,7 +90,7 @@
 */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.2.2"
+#define CLIENT_VERSION "0.2.3"
 #define CLIENT_VERSION_TAGS "alpha"
 
 main(integer src, integer n, string m, key outs, key ins, key user) {
@@ -144,7 +144,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				
 				string region = gets(url, -4);
 				vector coords = <(float)gets(url, -3), (float)gets(url, -2), (float)gets(url, -1)>;
-				llMapDestination(region, coords, ZV);
+				llMapDestination(llUnescapeURL(region), coords, ZV);
 			} else if(action == "day") {
 				if(subject == "length")
 					msg = (string)llGetDayLength();
