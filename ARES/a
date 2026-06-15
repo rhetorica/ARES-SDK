@@ -41,7 +41,7 @@
 #define ARES
 
 // version that OS components will report:
-#define ARES_VERSION "0.5.7"
+#define ARES_VERSION "0.5.7.1"
 #define ARES_VERSION_TAGS "beta 3"
 
 // copyright year for the OS:
@@ -141,7 +141,7 @@ string E_PROGRAM_NUMBER = "!!";
 // call from kernel to program:
 #define SIGNAL_EVENT				0x002
 #define E_SIGNAL_EVENT				"!#"
-// call from daemon to program (avoid at all costs):
+// call from daemon to program (deprecated -- do not use):
 #define SIGNAL_SUMMON				0x003
 #define E_SIGNAL_SUMMON				"!$"
 // receipt for successful invoke:
