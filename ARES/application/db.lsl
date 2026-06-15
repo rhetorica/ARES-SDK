@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -38,10 +38,10 @@
  */
 
 #include <ARES/a>
-#define FILE_STEP_SIZE 10
+#define FILE_STEP_SIZE 1
 #include <ARES/api/file.h.lsl>
 #include <ARES/api/auth.h.lsl>
-#define CLIENT_VERSION "1.2.1"
+#define CLIENT_VERSION "1.2.3"
 #define CLIENT_VERSION_TAGS "beta"
 
 key dbload_q;
@@ -449,7 +449,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 												string k = gets(keys, ki);
 												section_data = setjs(section_data, keyname + [k], getjs(varvalue, [k]));
 											}
-										} else if((mode == 6 && invalid) || mode != 6) {
+										} else if((mode == 6 && !invalid) || mode != 6) {
 											section_data = setjs(section_data, keyname, varvalue);
 										}
 										// apply the update if successful:
