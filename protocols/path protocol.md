@@ -179,10 +179,14 @@ Since SL scripts cannot read arbitrary HTTP headers (there is a narrow vocabular
 
 Directory listings are accessed at the webfs base URL or session URL, in plain text, with the format:
 
-`<filename> <size>`
-`<filename> <size>`
-`<filename> <size>`
-`<filename> <size>`
+```
+<filename> <size>
+<filename> <size>
+<filename> <size>
+<filename> <size>
+```
+
+There is no trailing newline: each entry consists of a filename, a space, and the size.
 
 However, if the source is configured to require authentication, GET requests to the base URL with no query string will yield a 401 Unauthorized status code or 403 Forbidden.
 
@@ -290,7 +294,7 @@ A stat of the special filename `*` should return information about the directory
 
 	`<session URL>?action=stat&file=*`
 
-Statting a nonexistent file or invalid filename should return an HTTP 404 code.
+Statting a nonexistent file or invalid filename should return an HTTP 404 code and a file size of 0.
 
 
 ## Subdirectories
@@ -309,7 +313,7 @@ Statting a nonexistent file or invalid filename should return an HTTP 404 code.
 	204 - OK, updated or deleted existing file
 	201 - OK, created file in response to read or append
 	200 - OK in all other circumstances
-	403 - action requires rw or rd permission but client only has ro permission
+	403 - client is authorized but has insufficient permission to complete action
 	404 - authorization is adequate, but either file does not exist or filename is invalid
 	401 - no valid token was supplied
 	400 - `disconnect` action for expired or invalid token
