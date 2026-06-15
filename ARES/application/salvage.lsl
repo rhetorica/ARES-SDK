@@ -36,8 +36,29 @@
  
  
 #include <ARES/a>
-#define CLIENT_VERSION "1.0"
+#define CLIENT_VERSION "1.1.0"
 #define CLIENT_VERSION_TAGS "release"
+
+string permissions(string item, integer cat) {
+	integer p = llGetInventoryPermMask(item, cat);
+	string out = "";
+	if(p & PERM_COPY)
+		out += "c";
+	
+	if(p & PERM_MODIFY)
+		out += "m";
+	
+	if(p & PERM_TRANSFER)
+		out += "t";
+	/*
+	if(p & PERM_MOVE)
+		out += " + move";
+	*/
+	if(out == "")
+		out = "none";
+	
+	return out;
+}
 
 main(integer src, integer n, string m, key outs, key ins, key user) {
 	if(n == SIGNAL_INVOKE) {
@@ -51,27 +72,91 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				+ "\nSupported actions:"
 				+ "\n    help: this message"
 				+ "\n    dbread <entry>: read from LSD storage"
+				+ "\n    dbprint <entry>: read from LSD storage and send to output pipe"
 				+ "\n    dbwrite <entry> <value>: write to LSD storage (self only)"
 				+ "\n    dbdelete <entry>: delete from LSD storage (self only)"
 				+ "\n    dbdrop <section>: delete a whole section from LSD storage (self only)"
 				+ "\n    dblist: list all LSD entries"
 				+ "\n    invdrop on|off: enable/disable inventory drop (self only)"
+				+ "\n    fileinfo <file>: report inventory info for specified file in local storage"
 			;
-		} else if(action == "dbread") {
-			string path = gets(argv, 2);
+		} else if(action == "fileinfo") {
+			string file = gets(argv, 2);
+			integer type = llGetInventoryType(file);
+			string type_name = getjs("{\"-1\":\"none\",\"0\":\"texture\",\"1\":\"sound\",\"3\":\"landmark\",\"5\":\"clothing\",\"6\":\"object\",\"7\":\"notecard\",\"10\":\"script\",\"13\":\"bodypart\",\"20\":\"animation\",\"21\":\"gesture\",\"56\":\"settings\",\"57\":\"material\"}", [(string)type]);
+			
+			if(type_name == JSON_INVALID)
+				type_name = "unknown";
+			
+			msg = "Filename: " + file
+			  + "\nType: " + (string)type + " (" + type_name + ")"
+			  + "\nAsset: " + (string)llGetInventoryKey(file)
+			;
+			
+			string path_size = getdbl("path:local", [file]);
+			string path_asset = getdbl("path:meta", [file]);
+			
+			if(path_asset != JSON_INVALID) {
+				if(path_asset == llGetInventoryKey(file))
+					msg += " (same in PATH)";
+				else
+					msg += " (PATH asset: " + path_asset + ")";
+			}
+				
+			if(path_size != JSON_INVALID)
+				msg += "\nSize: " + path_size + " b (PATH)";
+			
+			if(type != INVENTORY_NONE) {
+				msg += "\nDescription: " + llGetInventoryDesc(file);
+				msg += "\nAcquired: " + llGetInventoryAcquireTime(file)
+				     + "\nPermissions"
+					 + "\n    Base: " + permissions(file, MASK_BASE)
+					 + "\n    Owner: " + permissions(file, MASK_OWNER)
+					 + "\n    Group: " + permissions(file, MASK_GROUP)
+					 + "\n    Everyone: " + permissions(file, MASK_EVERYONE)
+					 + "\n    Next: " + permissions(file, MASK_NEXT);
+				
+				key creator = llGetInventoryCreator(file);
+				if(creator)
+					msg += "\nCreator: secondlife:///app/agent/" + (string)creator + "/about (" + (string)creator + ")";
+			}
+			
+			if(type == INVENTORY_SCRIPT) {
+				msg += "\nRunning: " + gets(["no", "yes"], llGetScriptState(file));
+			}
+			
+		} else if(action == "dbread" || action == "dbprint") {
+			// with escaping:
+			string path = replace(gets(argv, 2), "\\.", "");
 			list ks = splitnulls(path, ".");
-			msg = getdbl(gets(ks, 0), delitem(ks, 0));
-			if(msg == "")
-				msg = "(empty)";
-			else if(msg == JSON_INVALID)
-				msg = "(undefined)";
+			integer w = count(ks);
+			while(w--)
+				ks = alter(ks, [replace(gets(ks, w), "", ".")], w, w);
+			
+			if(count(ks) == 1) {
+				msg = llLinksetDataRead(path);
+				if(msg == "")
+					msg = "(null)";
+			} else {
+				msg = getdbl(gets(ks, 0), delitem(ks, 0));
+				if(msg == "")
+					msg = "(empty)";
+				else if(msg == JSON_INVALID)
+					msg = "(undefined)";
+			}
 			
 		} else if(action == "dbwrite") {
 			if(user != avatar) {
 				msg = "Only " + (string)avatar + " may issue the " + action + " command.";
 			} else {
-				string path = gets(argv, 2);
+				// with escaping:
+				string path = replace(gets(argv, 2), "\\.", "");
 				list ks = splitnulls(path, ".");
+				integer w = count(ks);
+				while(w--)
+					ks = alter(ks, [replace(gets(ks, w), "", ".")], w, w);
+				
+				
 				string h = gets(ks, 0);
 				ks = delitem(ks, 0);
 				
@@ -110,8 +195,13 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			if(user != avatar) {
 				msg = "Only " + (string)avatar + " may issue the " + action + " command.";
 			} else {
-				string path = gets(argv, 2);
+				// with escaping:
+				string path = replace(gets(argv, 2), "\\.", "");
 				list ks = splitnulls(path, ".");
+				integer w = count(ks);
+				while(w--)
+					ks = alter(ks, [replace(gets(ks, w), "", ".")], w, w);
+				
 				string h = gets(ks, 0);
 				ks = delitem(ks, 0);
 				
@@ -144,7 +234,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			if(user != avatar) {
 				msg = "Only " + (string)avatar + " may issue the " + action + " command.";
 			} else {
-				string k = gets(argv, 2);
+				string k = replace(gets(argv, 2), "\\.", ".");
 				list candidates = llLinksetDataFindKeys(k, 0, 0);
 				if(contains(candidates, k) || gets(argv, 3) == "force") {
 					tell(user, 0, "Deleting key " + k);
@@ -185,8 +275,13 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			msg = "Unknown action: " + action + ". For usage, see: @" + PROGRAM_NAME + " help";
 		}
 		
-		if(msg != "")
-			tell(user, 0, msg);
+		if(msg != "") {
+			if(action == "dbprint") {
+				print(outs, user, msg);
+			} else {
+				tell(user, 0, msg);
+			}
+		}
 	} else if(n == SIGNAL_INIT) {
 		#ifdef DEBUG
 			echo("[" + PROGRAM_NAME + "] init event");
