@@ -552,8 +552,14 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				jump new_owner_identified;
 			}
 		}
+		
 		identified_owner = JSON_INVALID;
-		// echo("no identifiable owner found");
+		echo("[_security] No identifiable owner found; automatic security audit triggered");
+		m = "* audit";
+		user = NULL_KEY;
+		outs = avatar;
+		jump restart_main;
+		
 		@new_owner_identified;
 		// echo("identified owner " + (string)identified_owner + " set");
 		setdbl("id", ["owner"], identified_owner);
