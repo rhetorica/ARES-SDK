@@ -647,19 +647,25 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 						}
 					}
 				}
-				
+			
+			} else if(action == "recolor") {
+				trigger_color_update = 1;
+			
 			} else {
 				msg = PROGRAM_NAME + ": Unrecognized action '" + action + "'; see 'help id' for a list of valid actions";
 			}
 			
-			if(trigger_color_update) {
-				e_call(C_INTERFACE, E_SIGNAL_CALL, (string)outs + " " + (string)user + " interface color");
-				e_call(C_VARIATYPE, E_SIGNAL_CALL, (string)outs + " " + (string)user + " variatype color");
-				e_call(C_HARDWARE, E_SIGNAL_CALL, (string)NULL_KEY + " " + (string)NULL_KEY + " hardware color");
+			if(trigger_color_update) {				
+				// look away, children:
+				string color_list = concat(llParseString2List(concat(colors, " "), ["<", ">", ","], []), "");
+			
+				e_call(C_INTERFACE, E_SIGNAL_CALL, (string)outs + " " + (string)user + " interface color " + color_list);
+				e_call(C_VARIATYPE, E_SIGNAL_CALL, (string)outs + " " + (string)user + " variatype color " + color_list);
+				e_call(C_HARDWARE, E_SIGNAL_CALL, (string)NULL_KEY + " " + (string)NULL_KEY + " hardware color " + color_list);
 				// no keys = tell device to send update to all devices
-				e_call(C_REPAIR, E_SIGNAL_CALL, (string)outs + " " + (string)user + " repair color");
-				e_call(C_STATUS, E_SIGNAL_CALL, (string)outs + " " + (string)user + " status color");
-				e_call(C_THERMAL, E_SIGNAL_CALL, (string)outs + " " + (string)user + " thermal color");
+				e_call(C_REPAIR, E_SIGNAL_CALL, (string)outs + " " + (string)user + " repair color " + color_list);
+				e_call(C_STATUS, E_SIGNAL_CALL, (string)outs + " " + (string)user + " status color " + color_list);
+				e_call(C_THERMAL, E_SIGNAL_CALL, (string)outs + " " + (string)user + " thermal color " + color_list);
 			}
 		}
 		
