@@ -86,6 +86,9 @@
 // #define TELEPORT_EFFECT_2
 // a more epilepsy-friendly teleport effect; ignores unit's color preferences
 
+// #define RECOLOR_ON_WORKING
+// when working, switch lights to color 4
+
 // #define FORCE_INSERT
 // attempts to insert the battery when door closing fails
 // #define HOOK_POWER
@@ -256,6 +259,9 @@ float lubricant = 1.0;
 #endif
 integer opo;
 integer obo;
+#ifdef RECOLOR_ON_WORKING
+integer owo;
+#endif
 
 #ifndef SOCKET_NAME
 	#define SOCKET_NAME "socket"
@@ -494,13 +500,21 @@ lights() {
 	}
 	#endif
 	
-	integer major_pf = oc1 != c1 || oc2 != c2 || oc3 != c3 || oc4 != c4 || broken != obo || power_on != opo;
+	integer major_pf = oc1 != c1 || oc2 != c2 || oc3 != c3 || oc4 != c4 || broken != obo || power_on != opo
+	#ifdef RECOLOR_ON_WORKING
+	|| working != owo
+	#endif
+	;
 	
 	if(major_pf || (power_on && broken)) {
 		integer li = count(texturables);
 		while(li) {
 			li -= 3;
 			vector pc = c1;
+			#ifdef RECOLOR_ON_WORKING
+			if(working)
+				pc = c4;
+			#endif
 			integer pcm = geti(texturables, li + 1);
 			if(pcm == 2)
 				pc = c2;
@@ -545,6 +559,9 @@ lights() {
 		oc2 = c2;
 		oc3 = c3;
 		oc4 = c4;
+		#ifdef RECOLOR_ON_WORKING
+		owo = working;
+		#endif
 	}
 	
 	setp(0, actions);
