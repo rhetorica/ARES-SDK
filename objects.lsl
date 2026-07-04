@@ -65,4 +65,13 @@
 #define OVER_512 0.001953125
 #define OVER_256 0.00390625
 
+
+// list_prims(): quickly list prims in local, useful as a debugging tool since firestorm can't reliably keep prims in order
+
+list_prims() {
+	integer pi = llGetNumberOfPrims();
+	while(pi--)
+		llOwnerSay("Link " + (string)(pi+1) + ": " + llGetLinkName(pi+1) + "\n" + llList2String(llGetLinkPrimitiveParams(pi+1, [PRIM_DESC]), 0));
+}
+
 #endif // _OBJECTS_LSL_
