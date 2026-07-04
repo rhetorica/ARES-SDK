@@ -36,7 +36,7 @@
  
  
 #include <ARES/a>
-#define CLIENT_VERSION "1.1.0"
+#define CLIENT_VERSION "1.2.0"
 #define CLIENT_VERSION_TAGS "release"
 
 string permissions(string item, integer cat) {
@@ -76,6 +76,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				+ "\n    dbwrite <entry> <value>: write to LSD storage (self only)"
 				+ "\n    dbdelete <entry>: delete from LSD storage (self only)"
 				+ "\n    dbdrop <section>: delete a whole section from LSD storage (self only)"
+				+ "\n    dblen <entry>: reports the length of a database entry"
 				+ "\n    dblist: list all LSD entries"
 				+ "\n    invdrop on|off: enable/disable inventory drop (self only)"
 				+ "\n    fileinfo <file>: report inventory info for specified file in local storage"
@@ -245,12 +246,21 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				}
 			}
 		
+		} else if(action == "dblen") {
+			string k = replace(gets(argv, 2), "\\.", ".");
+			list args = splitnulls(k, ".");
+			string entry = getdbl(gets(args, 0), delitem(args, 0));
+			if(entry == JSON_INVALID)
+				msg = "0";
+			else
+				msg = (string)strlen(entry);
+		
 		} else if(action == "dblist") {
 			integer lsmax = llLinksetDataCountKeys();
 			integer li = 0;
 			while(li < lsmax) {
 				string k = gets(llLinksetDataListKeys(li, 1), 0);
-				tell(user, 0, " - " + k + " (" + (string)strlen(llLinksetDataRead(k)) + " bytes)");
+				tell(user, 0, " - " + k + " (" + (string)strlen_byte(llLinksetDataRead(k)) + " bytes)");
 				++li;
 				llSleep(0.044);
 			}
