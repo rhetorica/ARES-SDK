@@ -13,8 +13,8 @@
             <Keywords name="Numbers, suffix1"></Keywords>
             <Keywords name="Numbers, suffix2"></Keywords>
             <Keywords name="Numbers, range"></Keywords>
-            <Keywords name="Operators1">&lt; = &gt; ! ^ &amp; | + - * / $</Keywords>
-            <Keywords name="Operators2">is</Keywords>
+            <Keywords name="Operators1">$</Keywords>
+            <Keywords name="Operators2">is &lt; = &gt; ! ^ &amp; | + - * /  &lt;= &gt;= ==</Keywords>
             <Keywords name="Folders in code1, open"></Keywords>
             <Keywords name="Folders in code1, middle"></Keywords>
             <Keywords name="Folders in code1, close"></Keywords>
@@ -24,11 +24,11 @@
             <Keywords name="Folders in comment, open"></Keywords>
             <Keywords name="Folders in comment, middle"></Keywords>
             <Keywords name="Folders in comment, close"></Keywords>
-            <Keywords name="Keywords1">if then set do exit in</Keywords>
-            <Keywords name="Keywords2">ai calc define domain fortune hookup land lore lslisp mail mantra news pds restraint scidb spy tell toot tweet type wander web con pipet net ax</Keywords>
+            <Keywords name="Keywords1">if then set do exit in not</Keywords>
+            <Keywords name="Keywords2">ai calc define domain fortune hookup land lore lslisp mail mantra news pds restraint scidb spy tell toot wander web con pipet net ax software reversi saver tesserae note corrado find dispatch</Keywords>
             <Keywords name="Keywords3">from say set service to</Keywords>
-            <Keywords name="Keywords4">%undefined %word %char %line</Keywords>
-            <Keywords name="Keywords5">db filter fs help id input menu nav persona pkg power proc security vox wiz xset device display libmenu</Keywords>
+            <Keywords name="Keywords4">%undefined %word %char %line %index %keys</Keywords>
+            <Keywords name="Keywords5">db filter fs help id input menu nav persona pkg parc power proc security vox wiz xset device display libmenu lust salvage path combat instructor type uplink</Keywords>
             <Keywords name="Keywords6">drop delete</Keywords>
             <Keywords name="Keywords7">baseband effector hardware interface io repair status variatype sexuality warrior</Keywords>
             <Keywords name="Keywords8"></Keywords>
