@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -38,8 +38,14 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.2.1"
+#define CLIENT_VERSION "1.3.0"
 #define CLIENT_VERSION_TAGS "release"
+
+// how long to pause for message syncopation after receiving SIGNAL_DONE when -t and -q are not present:
+#define HANGOVER_DELAY 0.1
+
+// jobs currently paused for the above:
+list finishing;
 
 /*
  replaces (string)  number   with (integer)number
@@ -88,9 +94,13 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	if(n == SIGNAL_INVOKE) {
 		list argv = splitnulls(m, " ");
 		
+		integer trust = 1;
 		integer quick_mode;
 		if(gets(argv, 1) == "-q") {
 			quick_mode = 1;
+			argv = delitem(argv, 1);
+		} else if(gets(argv, 1) == "-t") {
+			trust = 0;
 			argv = delitem(argv, 1);
 		}
 		
@@ -98,7 +108,14 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		string msg = "";
 		
 		if(argc < 2) {
-			msg = "Syntax: " + PROGRAM_NAME + " [-q] <variable> <command>\n\nxset WILL hang if a job returns no output at all. If this is a risk, specify -q.\n\nNew in 1.2: The command 'db json' will be detected and parsed; try also 'xset <var> = <db.value>' as a nicer alternative.";
+			msg = "Syntax for " + PROGRAM_NAME + ":"
+			
+			+ "\n\n    " + PROGRAM_NAME + " [-q|-t] <variable> <command>: run <command> and store output in LSD:env.<variable>"
+			  + "\n    " + PROGRAM_NAME + " <variable> = <database.entry>: put contents of LSD:<database.entry> into LSD:env.<variable>"
+			  + "\n    " + PROGRAM_NAME + " <variable> = %keys <database.entry>: put keys of LSD:<database.entry> into LSD:env.<variable>, concatenated with spaces"
+			  + "\n    " + PROGRAM_NAME + " <variable> = %values <database.entry>: put values of LSD:<database.entry> into LSD:env.<variable>, concatenated with linebreaks"
+			
+			+ "\n\nNote: " + PROGRAM_NAME + " has a brief delay afterward to make sure pipes are flushed properly. If this is not necessary, you may specify -q to remove it, or -t to make xset hang until output is received.";
 		} else if(argc >= 3) {
 			string varname = gets(argv, 1);
 			string command = concat(delrange(argv, 0, 1), " ");
@@ -108,8 +125,27 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					argv = delitem(argv, 3);
 				
 				string keyname = gets(argv, 3);
+				integer mode = 0;
+				
+				if(keyname == "%values")
+					mode = 2;
+				else if(keyname == "%keys")
+					mode = 1;
+				
+				if(mode)
+					keyname = gets(argv, 4);
+				
 				list keyparts = process_keyname(split(keyname, "."));
-				string value = getdbl(gets(keyparts, 0), delitem(keyparts, 0));
+				string value;
+				string section = gets(keyparts, 0);
+				list keylist = delitem(keyparts, 0);
+				if(mode == 2)
+					value = concat(jsvalues(getdbl(section, keylist)), "\n");
+				else if(mode == 1)
+					value = concat(jskeys(getdbl(section, keylist)), " ");
+				else
+					value = getdbl(section, keylist);
+				
 				if(value != JSON_INVALID) {
 					setdb("env", varname, value); // not dbl
 				} else {
@@ -131,7 +167,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					"command", command, // the command we're executing
 					"user", user, // who we're doing this for
 					"done", 0, // turns to 1 once we receive DONE
-					"data", quick_mode // turns to 1 once we receive data
+					"data", trust, // turns to 1 once we receive data
+					"q", (quick_mode || !trust) // if quick mode is enabled or trust mode is disabled, don't use the timer
 				]));
 				
 				// xset ends a task when both 'done' and 'data' conditions are met
@@ -150,8 +187,15 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	} else if(n == SIGNAL_DONE) {
 		key tag = substr(m, 0, 35);
 		integer got_data = (integer)getjs(tasks_queue, [tag, "data"]);
+		integer quick_mode = (integer)getjs(tasks_queue, [tag, "q"]);
 		if(got_data) {
-			finish(tag);
+			finishing += tag;
+			// a native timer is usually necessary here to deal with syncopation, but some jobs are well-behaved
+			if(quick_mode) {
+				finish(tag);
+			} else {
+				llSetTimerEvent(HANGOVER_DELAY);
+			}
 		} else {
 			tasks_queue = setjs(tasks_queue, [tag, "done"], "1");
 		}
@@ -182,6 +226,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			integer pi = index(pipes, ins);
 			if(!~pi) {
 				echo("xset: data from non-open pipe: " + (string)ins);
+				// echo("command line: " + m);
+				// echo("expected pipes: " + concat(pipes, ", "));
+				// echo("pipe content: " + llLinksetDataRead("p:" + (string)ins));
 			} else {
 				key tag = getk(tags, pi);
 				string buffer;
@@ -220,4 +267,5 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 	}
 }
 
+#define EXT_EVENT_HANDLER "ARES/application/xset.event.lsl"
 #include <ARES/program>
