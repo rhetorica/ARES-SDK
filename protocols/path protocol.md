@@ -1,9 +1,9 @@
 
-# PATH PROTOCOL VERSION 2.0.3
+# PATH PROTOCOL VERSION 2.1.0
 
-2026-04-11
+2026-07-04
 
-To be introduced in ARES 0.5.7, the PATH protocol (PHASE Augmented Through HTTP) is a hybrid filesystem model for data storage systems in Second Life. It builds on the PHASE (Prim-Handle Abstract Storage Engine) protocol and the WEBFS file access mechanism originated in ARES 0.4.4.
+Introduced in ARES 0.5.7, the PATH protocol (PHASE Augmented Through HTTP) is a hybrid filesystem model for data storage systems in Second Life. It builds on the PHASE (Prim-Handle Abstract Storage Engine) protocol and the WEBFS file access mechanism originated in ARES 0.4.4.
 
 The main benefits of PATH over PHASE are as follows:
 
@@ -45,10 +45,14 @@ In practice it is unlikely that incompatibility between PHASE and PATH will be e
 	
 	token: an HTTP string provided by the client as part of the connect message which serves as a means of uniquely identifying the ongoing exchange.
 	
+	callback URL: an HTTP(S) URL provided by the client where the PATH host will send simple notifications when changes occur to the files on the storage medium.
+	
+	callback: a message sent to the callback URL, per above.
+	
 
 # PATH MESSAGES
 
-`<handle> connect <mode>`
+`<handle> connect <mode> [<callback-url>]`
 
 	system -> storage
 	
@@ -63,6 +67,8 @@ In practice it is unlikely that incompatibility between PHASE and PATH will be e
 	For standard PATH connections, the <handle> from the <connect> message will be expected and re-used as token data (see webfs section). This should NOT be the UUID of any object or avatar, as this is too easy to guess and could be falsified during HTTP.
 
 	The server will most likely have a list of pre-approved tokens that it will accept, or it may choose to examine the server object using `llGetObjectDetails()` and `llGetOwnerKey()` to decide if it is trustworthy.
+	
+	If <callback-url> is provided, then PATH will use WEBFS callback messages and there will be no further communication over the PHASE channel. The storage host will *not* close connections to objects that set callback URLs, even if they cease to exist; this makes callback communications ideal for inter-sim communications. See 'Callbacks', below.
 
 
 `<handle> version <version> <label>`
@@ -169,6 +175,17 @@ In practice it is unlikely that incompatibility between PHASE and PATH will be e
 	For most actions, 'denied' is not used by PATH, as the webfs operation will fail with a 40x error code.
 
 
+`<handle> callback <url>`
+
+	system -> storage
+	
+	Added in PATH 2.1.0. Please send update messages to the above URL using the WEBFS callback mechanism instead of the PHASE channel.
+	
+	If a callback URL is set, then PATH will use WEBFS callback messages and there will be no further communication over the PHASE channel. The storage host will *not* close connections to objects that set callback URLs, even if they cease to exist; this makes callback communications ideal for inter-sim communications. See 'Callbacks', below.
+	
+	No reply is given by the storage host in response to receiving this message.
+
+
 # WEBFS
 
 Under PATH, the following standard operations are defined as taking place over HTTP using a webfs endpoint: stat, read, delete, write, append.
@@ -203,11 +220,13 @@ with the content:
 
 	`{"token":"<token>"}`
 
-where <token> is set to an arbitrary secret value unique to the system, ideally a UUID. Any 'connect' message sent using this token will cause previous sessions with the same token to be dropped. The value NULL_KEY ("00000000-0000-0000-0000-000000000000") is forbidden.
+or
+
+	`{"token":"<token>","callback":"<url>"}`
+
+where <token> is set to an arbitrary secret value unique to the system, ideally a UUID, and <callback> is an HTTP(S) URL to which webfs updates will be POSTed. Any 'connect' message sent using this token will cause previous sessions with the same token to be dropped. The value NULL_KEY ("00000000-0000-0000-0000-000000000000") is forbidden.
 
 <mode> is as used in the PHASE protocol (see earlier); one of: ro rd rw
-
-Hereafter, all messages exchanged by the server source and client system will include the 'Token' header.
 
 Upon success, the server will respond with 200 OK. The message body will be in JSON:
 
@@ -317,6 +336,65 @@ Statting a nonexistent file or invalid filename should return an HTTP 404 code.
 	404 - authorization is adequate, but either file does not exist or filename is invalid
 	401 - no valid token was supplied
 	400 - `disconnect` action for expired or invalid token
+
+
+## Callbacks
+
+Added in 2.1.0 of the PATH standard is the ability to send callback messages to a given HTTP or HTTPS URL, which is provided by the client system during connection negotiation. Messages sent to this URL are POSTs with the following JSON syntax:
+
+`{"session":"<token>","message":"<command>","args":[<...>]}`
+
+Where `<token>` is the connection token that the client system is using to access the storage server, `<command>` is the actual signal being sent and `<...>` is a list of zero or more comma-separated data items.
+
+Possible `<command>`s are:
+
+	`update`
+	`new`
+	`deleted`
+	`url`
+
+Once a callback URL is set, the storage host has no way of knowing when the client system is done accessing it. Even if the connection was negotiated over PHASE and the object is deleted, the storage host will continue tracking it. This is necessary to support inter-sim communications. Remember to disconnect properly. Recycling tokens is encouraged for this purpose, as a new host using an old token will pre-empt the older connection.
+
+
+### update
+
+The `update` callback message indicates that multiple changes have occurred and takes no arguments.
+
+Example `update` POST body:
+
+```
+{"session":"00000000-0000-0000-0000-000000000000","message":"update","args":[]}
+```
+
+### new
+
+The `new` callback message indicates that a single file with the specified name (provided as `args`) has been added to the system. As the `new` message does not provide a file size, most clients will need to fetch a refresh of the directory listing after this.
+
+Example `new` POST body:
+
+```
+{"session":"00000000-0000-0000-0000-000000000000","message":"new","args":["file.txt"]}
+```
+
+### deleted
+
+The `deleted` callback message indicates that a single file has been removed. The client system may amend its copy of the directory listing to remove this file rather than redownloading the whole directory listing.
+
+Example `deleted` POST body:
+
+```
+{"session":"00000000-0000-0000-0000-000000000000","message":"deleted","args":["file.txt"]}
+```
+
+### url
+
+The `url` callback message indicates that the server's URL has changed, likely due to moving to a new region or a region restart. The arguments provided consist of a single string indicating the new base URL.
+
+Example `url` POST body:
+
+```
+{"session":"00000000-0000-0000-0000-000000000000","message":"url","args":["http://simhost-07e5b72529208ad6c.agni.secondlife.io:12046/cap/a644562b-1c14-e872-15da-9777d317f6c2"]}
+```
 
 
 # APPENDIX - COMPATIBILITY CHALLENGES
