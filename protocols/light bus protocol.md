@@ -12,10 +12,10 @@ channel_lights = 105 - (integer)("0x" + llGetSubString(llGetOwner(), 29, 35));
 
 ## Device Categories
 
-| Category    | Description                                                                                                              |
-|-------------|--------------------------------------------------------------------------------------------------------------------------|
-| **Passive** | Listens for messages and reacts. No authentication required. Examples: status lights, eyes, reactive clothing.           |
-| **Active**  | Has sent `add <device>` and received `add-confirm`. May send active commands and receive active responses.               |
+| Category    | Description                                                                                                    |
+|-------------|----------------------------------------------------------------------------------------------------------------|
+| **Passive** | Listens for messages and reacts. No authentication required. Examples: status lights, eyes, reactive clothing. |
+| **Active**  | Has sent `add <device>` and received `add-confirm`. May send active commands and receive active responses.     |
 
 Foreign devices (not owned by the unit) must be granted access according to the unit's local access permissions.
 
@@ -374,8 +374,16 @@ conf-set mydevice.myfeature 1
 mydevice.otherfeature myvalue
 ```
 
+> Although ARES understands the `conf-set` message, it is disabled, to prevent accidental damage by outdated backup disks.
+
 ### `conf-delete <setting-name>`
 Remove a setting from the config store.
+
+---
+### `damage <amount>`
+_(ARES)_ Deals `<amount>` points of damage to the unit, where 100 is the amount required to incapacitate a standard unit. Negative values will apply repairs.
+
+> Damage applied through this mechanism is treated as having the 'special' damage type, which ignores shielding and other forms of mitigation. It is intended for use in simulating internal malfunctions and is not broadly suitable as a replacement for collision-based combat.
 
 ---
 
@@ -388,6 +396,15 @@ Request a list of connected devices. The system will respond with one or more `d
 
 ### `follow-q`
 Request the system to send `follow`.
+
+---
+
+### `freeze` / `unfreeze`
+_(ARES)_ Lock or release the unit's motors, e.g. during charging or while being carried.
+
+> As with standard RLV restrictions, multiple sources of motor freeze are tracked independently. Sending `unfreeze` merely removes the freeze applied by the current device; it cannot guarantee there are no other sources of motor freeze, and has no effect except to cancel prior restrictions imposed by the same device.
+
+> Freezes are automatically canceled if the device responsible is removed or derezzed.
 
 ---
 
@@ -458,6 +475,8 @@ If forwarded to a port host, the host is guaranteed to follow up with `port-real
 ### `port-disconnect <type>`
 Signal that the port of the given type is no longer in use. The connecting device must stop sending particles. The system will correctly forward this to the port host.
 
+> Devices that provide ports should periodically check for derezzed clients, and fulfill port disconnection themselves when the object currently using a port no longer exists.
+
 ---
 
 ### `power-q`
@@ -465,11 +484,40 @@ Request the system to send `on` or `off` as appropriate, plus `bolts`.
 
 ---
 
+### `release <rule-name>`
+_(ARES)_ Removes an RLV rule previously created with `restrict`. If the restriction specification started with `a:`, then the animation will be canceled.
+
+> Restrictions are automatically canceled if the device responsible is removed or derezzed.
+
+---
+
+### `restrict <rule-name> <restriction-spec>`
+_(ARES)_ Adds RLV restrictions. The syntax for `<restriction-spec>` resembles standard RLV rules, but without the leading `@`, and the `=y` or `=n` terms replaced with `=?`. For example, adding sit and unsit restrictions would be `sit=?,unsit=?` rather than `@sit=n,unsit=n` (direct form) or `@sit=n|@unsit=n` (relay form).
+
+In ARES, an additional restriction called `move=?` is provided. This pseudo-RLV rule uses `llTakeControls()` to prevent walking, flying, crouching, or turning.
+
+Alternatively, the `<restriction-spec>` may be `a:` followed by the name of an animation present in ring 2 (s_dead, s_charging, etc), in which case the animation will be activated. (Note that the shutdown state, if applied by the operating system, takes priority over all other animations.)
+
+In ARES, the `release` and `restrict` rules are implemented by the effector daemon, which goes to great lengths to correctly integrate certain RLV rules and ensure they do not conflict. See ARES/api/effector.h.lsl for more documentation.
+
+---
+
+### `rlv <restrictions>`
+_(ARES)_ Executes RLV commands immediately without any signal integration. This should be used with caution as it can be used to break subsystem restrictions.
+
+---
+
 ### `remove <device>`
 Remove `<device>` from the device manager. Most peripherals don't need this, but foreign devices (e.g. docking stations) and standard batteries (when ejected) should use it.
 
+> This occurs automatically when an active device derezzes.
+
+---
+
 ### `remove-command <command>`
 Cancel a previously registered `add-command`.
+
+> Commands are automatically removed if the device responsible is removed or derezzed.
 
 ---
 
@@ -477,6 +525,16 @@ Cancel a previously registered `add-command`.
 Check whether `<subsystem>` is enabled. The system responds with `subsystem`. See subsystem table above for parameter values.
 
 > Before Companion 8.5m3, the parameter was ignored and only video (0) status could be queried.
+
+---
+
+### `teleport <x> <y> <z> <region>`
+_(ARES)_ Effectuates a guaranteed teleport. This will cause the unit to teleport to the specified coordinates in the specified region name.
+
+### `teleport <x> <y> <z> external <region>`
+_(ARES)_ If the "`external`" keyword is included, then the unit's FTL capacitor will skip recharging and no teleport effects will be played, as though it had just walked through a portal.
+
+> Using this mechanism instead of simply trying to implement the effect directly when coding e.g. a teleport pad is recommended, as it prevents the system from interfering with teleportation.
 
 ---
 
