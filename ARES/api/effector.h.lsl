@@ -49,6 +49,7 @@
  *  - If a rule's name starts with 'a:' then its contents will be treated as an animation from ring 2 (the daemon ring)
  *  - The new rule 'move=?' causes the system to intercept movement keys while active.
  *  - The rule 'recvchat=?' will also trigger 'recvemote=?' and cause the _input program to attempt to filter quoted text inside emotes.
+ *  - If either the rule name or rule value begins with 'a:' then the rest of the rule value is interpreted as the name of an animation accessible to effector (s_dead, s_charging, etc). This does not apply to effector_rlv().
  *
  * As of Alpha 1, only a few RLV rules can be applied multiple times. These are 'move=?', 'sendchat=?', 'recvemote=?', and 'recvchat=?'. Attempting to remove any other rule will release the restriction entirely, breaking other sources of the same restriction. This will be improved when the RLV relay program 'restraint' is finished in Alpha 3.
  *
