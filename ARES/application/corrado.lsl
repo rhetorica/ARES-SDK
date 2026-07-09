@@ -39,8 +39,8 @@
 
 #include <ARES/a>
 #include <ARES/api/auth.h.lsl>
-#define CLIENT_VERSION "0.2.0"
-#define CLIENT_VERSION_TAGS "alpha"
+#define CLIENT_VERSION "0.3.0"
+#define CLIENT_VERSION_TAGS "beta"
 #define PERMISSION "manage"
 
 // argsplit() from find.lsl
@@ -108,9 +108,11 @@ string password;
 
 string callback;
 
+#define FLAG_JSON_OUTPUT 0x01
+
 key http_fetch_reply;
-list waiting_queries; // [src, ins, handle, outs, user, post_body_pipe, post_reply_pipe, bot_address]
-list active_queries; // [src, ins, handle, outs, user]
+list waiting_queries; // [src, ins, handle, outs, user, post_body_pipe, post_reply_pipe, bot_address, flags]
+list active_queries; // [src, ins, handle, outs, user, flags]
 
 main(integer src, integer n, string m, key outs, key ins, key user) {
 	if(n == SIGNAL_NOTIFY) {
@@ -148,9 +150,40 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					key r_ins = getk(active_queries, aqi - 1);
 					key r_outs = getk(active_queries, aqi + 1);
 					key r_user = getk(active_queries, aqi + 2);
-					active_queries = delrange(active_queries, aqi - 2, aqi + 2);
+					
+					integer flags = geti(active_queries, aqi + 3);
+					
+					active_queries = delrange(active_queries, aqi - 2, aqi + 3);
+					
+					list fields = js2list(buffer);
+					integer fmax = count(fields);
+					if(count(fields) && !(flags & FLAG_JSON_OUTPUT)) {
+						integer success = (llToLower(getjs(buffer, ["success"])) == "true");
+						
+						// attempt to beautify output
+						integer fi = 0;
+						buffer = "";
+						integer last_output;
+						integer outputs;
+						while(fi < fmax) {
+							string fieldname = gets(fields, fi);
+							if(fieldname != "command" && fieldname != "time" && fieldname != "success") {
+								buffer += fieldname + ": " + gets(fields, fi + 1) + "\n";
+								last_output = fi;
+								++outputs;
+							}
+							fi += 2;
+						}
+						buffer = delstring(buffer, LAST, LAST); // trim \n
+						if(outputs == 1)
+							buffer = gets(fields, last_output + 1);
+						
+						if(!success)
+							buffer += "\n\nThe command did not complete successfully.";
+					}
 					
 					print(r_outs, r_user, buffer);
+					
 					resolve_i(r, r_ins);
 				} else {
 					echo("invalid aqi: " + m);
@@ -164,14 +197,15 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					key handle = gets(argv, 5);
 					integer wqi = index(waiting_queries, handle);
 					if(~wqi) {
-						active_queries += sublist(waiting_queries, wqi - 2, wqi + 2);
+						integer flags = geti(waiting_queries, wqi + 6);
+						active_queries += sublist(waiting_queries, wqi - 2, wqi + 2) + [flags];
 						
 						string q_addr = gets(waiting_queries, wqi + 5);
 						key q_reply_p = getk(waiting_queries, wqi + 4);
 						key q_body_p = getk(waiting_queries, wqi + 3);
 						
 						http_post(q_addr, q_reply_p, q_body_p, handle);
-						waiting_queries = delrange(waiting_queries, wqi - 2, wqi + 5);
+						waiting_queries = delrange(waiting_queries, wqi - 2, wqi + 6);
 						// echo("dispatched query");
 					} else {
 						echo("invalid wqi: " + m);
@@ -187,7 +221,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		integer argc = count(argv);
 		string msg = "";
 		if(argc == 1) {
-			msg = "Syntax: " + PROGRAM_NAME + " [-] [-t] [-v] [-f] [-a <key>|-u <HTTP URL>] [-g <group>] [-p <password>] [--<arg> <value> [...]] [<command> [<message>]]\n\nConfigures and sends commands to a Corrade agent. Messages are formatted as JSON and sent over IM.\n\n    -a <key>: Sets the agent UUID.\n    -u <HTTP URL>: Sets the Corrade HTTP URL.\n    -g <group>: Sets the authentication group name.\n    -p <password>: Sets the authentication group password.\n\nIf any of the above settings are missing, the previous values will be re-used. -a and -u are mutually exclusive.\n\n    <command>: One of https://grimore.org/secondlife/scripted_agents/corrade/api/commands\n    <message>: Contextual; usually mapped to the third parameter listed on the Complete List of Commands page.\n    --<arg> <value>: Sets additional arguments. Use \"double quotes\" to wrap values containing spaces.\n    -t: Test only; do not send. Useful for determining what <message> maps to.\n    -v: Verbose (warn about missing or empty <message> parameters)\n    -f: Don't wait for response when using HTTP; just send command and quit.\n    -: Read <message> from standard input, discarding <message> if non-empty.";
+			msg = "Syntax: " + PROGRAM_NAME + " [-] [-t] [-v] [-f] [-a <key>|-u <HTTP URL>] [-g <group>] [-p <password>] [--<arg> <value> [...]] [<command> [<message>]]\n\nConfigures and sends commands to a Corrade agent. Messages are formatted as JSON and sent over IM.\n\n    -a <key>: Sets the agent UUID.\n    -u <HTTP URL>: Sets the Corrade HTTP URL.\n    -g <group>: Sets the authentication group name.\n    -p <password>: Sets the authentication group password.\n\nIf any of the above settings are missing, the previous values will be re-used. -a and -u are mutually exclusive.\n\n    <command>: One of https://grimore.org/secondlife/scripted_agents/corrade/api/commands\n    <message>: Contextual; usually mapped to the third parameter listed on the Complete List of Commands page.\n    --<arg> <value>: Sets additional arguments. Use \"double quotes\" to wrap values containing spaces.\n    -j: Output results as raw JSON.\n    -t: Test only; do not send. Useful for determining what <message> maps to.\n    -v: Verbose (warn about missing or empty <message> parameters)\n    -f: Don't wait for response when using HTTP; just send command and quit.\n    -: Read <message> from standard input, discarding <message> if non-empty.";
 		/*} else if(gets(argv, 1) == "-F") {
 			if(http_fetch_reply != "") {
 				pipe_close(http_fetch_reply);
@@ -220,6 +254,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			integer warn = 0;
 			integer test = 0;
 			integer pipe_in = 0;
+			integer flags = 0;
 			string command;
 			string message;
 			integer argi = 1;
@@ -237,6 +272,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				if(message == "") {
 					if(term == "-") {
 						pipe_in = 1;
+					} else if(term == "-j") {
+						flags = flags | FLAG_JSON_OUTPUT;
 					} else if(term == "-f") {
 						no_http_wait = 1;
 					} else if(term == "-v") {
@@ -596,7 +633,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 							
 							
 							waiting_queries += [
-								src, ins, handle, outs, user, post_body_pipe, post_reply_pipe, bot_address
+								src, ins, handle, outs, user, post_body_pipe, post_reply_pipe, bot_address, flags
 							];
 							
 							pipe_open("p:" + (string)post_reply_pipe + " notify " + PROGRAM_NAME + " fetched " + (string)handle);
