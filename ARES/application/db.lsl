@@ -41,7 +41,7 @@
 #define FILE_STEP_SIZE 1
 #include <ARES/api/file.h.lsl>
 #include <ARES/api/auth.h.lsl>
-#define CLIENT_VERSION "1.2.3"
+#define CLIENT_VERSION "1.2.4"
 #define CLIENT_VERSION_TAGS "beta"
 
 key dbload_q;

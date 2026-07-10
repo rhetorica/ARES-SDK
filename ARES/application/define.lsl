@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.1.2"
+#define CLIENT_VERSION "1.1.3"
 #define CLIENT_VERSION_TAGS "release"
 
 string DEFAULT_DOMAIN = "en.wikipedia.org";

@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2025 Nanite Systems Corporation
+ *            Copyright (c) 2025-2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -33,7 +33,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.1.1"
+#define CLIENT_VERSION "0.1.2"
 #define CLIENT_VERSION_TAGS "alpha"
 
 integer charging;

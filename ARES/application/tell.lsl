@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.2.0"
+#define CLIENT_VERSION "1.2.1"
 #define CLIENT_VERSION_TAGS "release"
 
 main(integer src, integer n, string m, key outs, key ins, key user) {

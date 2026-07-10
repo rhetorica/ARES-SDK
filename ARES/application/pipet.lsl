@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2026 Nanite Systems Corporation
+ *               Copyright (c) 2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -34,7 +34,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "0.1.0"
+#define CLIENT_VERSION "0.1.1"
 #define CLIENT_VERSION_TAGS "beta 1"
 
 integer extend_rlv;

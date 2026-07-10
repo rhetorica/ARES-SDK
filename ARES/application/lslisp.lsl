@@ -2,7 +2,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -39,7 +39,7 @@
 
 #include <ARES/a>
 #include <lslisp.lsl>
-#define CLIENT_VERSION "0.2.6"
+#define CLIENT_VERSION "0.2.7"
 #define CLIENT_VERSION_TAGS "lang " + INTERPRETER_VERSION
 
 integer file_offset;

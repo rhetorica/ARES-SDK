@@ -36,7 +36,7 @@
 #include <ARES/a>
 #include <ARES/api/interface.consts.h.lsl>
 
-#define CLIENT_VERSION "1.0.0"
+#define CLIENT_VERSION "1.0.1"
 #define CLIENT_VERSION_TAGS "release"
 
 #define DEFAULT_INTERVAL 30
