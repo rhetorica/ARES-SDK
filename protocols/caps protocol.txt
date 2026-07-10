@@ -1,5 +1,5 @@
 
-A. Lazuli
+A. V. Lazuli <support@nanite-systems.com>
 Nanite Systems Communications Corporation (NANOCOM)
 July 2026
 
@@ -16,7 +16,7 @@ This document specifies a Company-Wide Best Current Practices (CWBCP) for the Na
 
 Copyright Notice
 
-Copyright (C) Nanite Systems Communications Corporation (2024).  All Rights Reserved.
+Copyright (C) Nanite Systems Communications Corporation (2024-2026).  All Rights Reserved.
 
 
 Abstract
@@ -107,7 +107,7 @@ sent on the query channel, where <c> is the channel number on which the host sho
 
 3.3. TOUCH
 
-In certain cases it may be desirable to emulate an avatar touch event without the use of a mouse click. This can be useful for automating behavior in both script-assisted paradigms (e.g. remote piloting) and fully-scripted agent paradigms (i.e. autonomous bots).
+In certain cases it may be desirable to emulate an avatar touch event without the use of a mouse click.  This can be useful for automating behavior in both script-assisted paradigms (e.g. remote piloting) and fully-scripted agent paradigms (i.e. autonomous bots).
 
 If a client sends the message:
 
@@ -125,7 +125,7 @@ on the query channel, and <uuid> is one of:
 
 and the HW-CAPS host has some sort of generic touch response, then the host may emulate a touch event, treating <uuid> as the source of the touch event.
 
-Alternatively, if (d) the <uuid> is absent, then the source depends on OBJECT_ATTACHED_POS. Determine whether:
+Alternatively, if (d) the <uuid> is absent, then the source depends on OBJECT_ATTACHED_POS.  Determine whether:
 
 	(d.1) the object is an attachment (OBJECT_ATTACHED_POS is non-zero), in which case the source is its llGetOwnerKey()
 	(d.2) the object is not an attachment (OBJECT_ATTACHED_POS is non-zero), in which case the source is its OBJECT_ROOT
@@ -143,11 +143,9 @@ Here is an example of the above discrimination mechanism (ARES LSL):
 			do_touch(getk(geto(id, [OBJECT_ROOT]), 0));
 	}
 
-HW-CAPS objects are not obligated to honor touch messages, and in some cases objects with touch handlers will not be able to handle generic touches like this, e.g. because further clarification is required, such as a specific element on a menu system.
+HW-CAPS objects are not obligated to honor touch messages, and in some cases objects with touch handlers will not be able to handle generic touches like this, e.g. because further clarification is required, such as a specific element on a menu system.  For equipment where a plain touch event is useful, such as a door panel or plug-in power outlet, a nulladic 'touch' signal is particularly valuable.
 
-Nevertheless, for equipment where a plain touch event is useful, such as a door panel or plug-in power outlet, a nulladic 'touch' signal is potentially valuable.
-
-If an HW-CAPS host supports the 'touch' message, it should add the 'touch' service on channel 411 to its HWC ping response (see 4.1. HWC). This eliminates the need for basic failure messages. See also Appendix B: HW-CAPS Channels for a list of known services.
+If an HW-CAPS host supports the 'touch' message, it should add the 'touch' service on channel 411 to its HWC ping response (see 4.1. HWC).  This eliminates the need for basic failure messages.  See also Appendix B: HW-CAPS Channels for a list of known services.
 
 
 4. Responses
@@ -293,11 +291,11 @@ If <channel> is specified, and the AV-CAPS host also provides HW-CAPS functional
 
 7.1. Naming of Services & Attachments
 
-Service attachments must be named <service>-<version>, where <service> is a short string of ASCII letters, hyphens, and digits uniquely identifying the service, and <version> is a string of ASCII digits and periods (.) uniquely identifying the service's version number. The last hyphen in the string is used to separate the service name from the version number.
+Service attachments must be named <service>-<version>, where <service> is a short string of ASCII letters, hyphens, and digits uniquely identifying the service, and <version> is a string of ASCII digits and periods (.) uniquely identifying the service's version number.  The last hyphen in the string is used to separate the service name from the version number.
 
-Service names must begin with a letter. They may not have multiple consecutive hyphens, nor end in a hyphen. Capitalization is allowed, but will be stripped during communications.
+Service names must begin with a letter.  They may not have multiple consecutive hyphens, nor end in a hyphen.  Capitalization is allowed, but will be stripped during communications.
 
-Version numbers must begin and end with a digit. They may not have multiple consecutive periods.
+Version numbers must begin and end with a digit.  They may not have multiple consecutive periods.
 
 The following service attachment names are legal:
 
@@ -326,6 +324,7 @@ Thanks to Renyx 'Ren' Resident for inspiring the TOUCH message.
 10. Author's Address
 
 Atarah Vella Lazuli
+<support@nanite-systems.com>
 NANOCOM Davies Research Institute
 1100 Blazkowicz Road
 Elysium, Mars
@@ -364,18 +363,18 @@ Inquiring clients that present a user interface documenting discovered CAPS host
  - control: Integrates signals and makes decisions.
  - cryo: Removes heat.
  - data: Stores or transfers electronic information.
- - defend: Thwarts or harms attackers. Do not specify 'safety' and 'defend' purposes for the same device.
+ - defend: Thwarts or harms attackers.  Do not specify 'safety' and 'defend' purposes for the same device.
  - detect: Identifies objects meeting set criteria.
- - engine: Generates motion for a vehicle or machine. Supersedes the 'motor' purpose.
- - enviro: Maintains temperature, pressure, and/or humidity at target values within a space, or removes pollution. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'enviro' purpose.
+ - engine: Generates motion for a vehicle or machine.  Supersedes the 'motor' purpose.
+ - enviro: Maintains temperature, pressure, and/or humidity at target values within a space, or removes pollution.  Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'enviro' purpose.
  - fabricate: Conducts manufacturing.
  - fuel: Refills fuel, or can be used as fuel.
- - furniture: Can be sat upon. Do not tag with 'storage' unless the furniture is multifunctional.
- - homeostasis: Maintains temperature, pressure, and/or humidity at target values within a body, or removes toxins. Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'homeostasis' purpose.
+ - furniture: Can be sat upon.  Do not tag with 'storage' unless the furniture is multifunctional.
+ - homeostasis: Maintains temperature, pressure, and/or humidity at target values within a body, or removes toxins.  Do not specify 'control', 'cryo', or 'thermal' purposes if a device provides the 'homeostasis' purpose.
  - hydro: Directs or utilizes the flow of water or other liquids and gasses.
  - info: Presents human-readable information.
  - kinematics: Animation overriders and systems that control articulation or motion of robotic equipment.
- - light: Provides illumination. Purely decorative objects will generally use this purpose.
+ - light: Provides illumination.  Purely decorative objects will generally use this purpose.
  - logistic: Facilitates distribution of equipment, people, or products.
  - medical: Diagnoses or heals organics.
  - motor: Produces rotational movement using electromagnetism, or electricity from rotation.
@@ -385,46 +384,48 @@ Inquiring clients that present a user interface documenting discovered CAPS host
  - power: Distributes power from another source.
  - repair: Fixes damage to electronics.
  - respawn: Location where an avatar or object reappears after a defeat.
- - safety: Mitigates or prevents unsafe industrial or environmental conditions. Do not specify 'safety' and 'defend' purposes for the same device.
- - science: General scientific research or surveying equipment, not otherwise specified. Do not tag with 'bio', 'chem', or 'agri'.
+ - safety: Mitigates or prevents unsafe industrial or environmental conditions.  Do not specify 'safety' and 'defend' purposes for the same device.
+ - science: General scientific research or surveying equipment, not otherwise specified.  Do not tag with 'bio', 'chem', or 'agri'.
  - security: Prevents unauthorized access, or circumvents access prevention measures.
  - server: Central repository for settings or objects.
  - stasis: Stores organics in suspended animation or medical coma.
- - storage: General storage. Do not tag with 'cargo' purpose. Only tag with 'furniture' if the object contains both storage and sittable surfaces (e.g. a combined chair and bookcase).
+ - storage: General storage.  Do not tag with 'cargo' purpose.  Only tag with 'furniture' if the object contains both storage and sittable surfaces (e.g. a combined chair and bookcase).
  - thermal: Generates heat.
  - travel: Facilitates movement in some unspecified way other than a vehicle, e.g. a teleporter or jump pad.
- - vehicle: Holds individuals and provides transit. Do not combine with purposes necessary for a vehicle to function (e.g. 'motor' or 'engine')
+ - vehicle: Holds individuals and provides transit.  Do not combine with purposes necessary for a vehicle to function (e.g. 'motor' or 'engine')
 
 
 Appendix B: HW-CAPS Channels
 
-The following channels should be listed for HW-CAPS if relevant.
+The following channels should be listed for HW-CAPS if relevant.  Advertising additional services beyond those listed here is allowed and encouraged.  Please contact the author if you would like a service to be added to ensure it receives a consistent name across implementations.
 
-Service       Channel			Description
+Service             Channel			  Description
 ----------------------------------------------------------------------------------------
-orix-alt      9360              Alternate channel for orix
-pds           5201              Nanite Systems Power Distribution System
-facet         5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
-caps          411               CAPS itself (this document; optional)
-touch         411               The device supports the HW-CAPS 'touch' extension (see 3.3. TOUCH)
-acs           360               Autonomy Control Systems CCU protocol (http://develop.nanite-systems.com/resources/ACS-charging.pdf)
-command       1*                Generic term for command handler using a name-based prefix (commonly used by collars)
-trigger       0                 Generic term for any detection of commands issued in normal local chat
-lockmeister  -8888              LockMeister system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockMeister_System)
-lockguard    -9119				LockGuard system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockGuard)
-hudware      -82104             NANOCOM HUDware bidirectional (http://develop.nanite-systems.com/HUDware)
-ao-link      -782690            OpenCollar AO Link
-stargate     -900000            Alteran Stargate Network
-arena        -9990009           ATOS Arena
-tesi         -9999969           NS TESI Lust (http://develop.nanite-systems.com/?id=1924#LC%20messages)
-public       -9999999           NS public bus (http://develop.nanite-systems.com/?public)
-public-alt   -9999998           Alternate channel for public
-weather      -78838783          Nanite Systems Weather Service
-orix         -15180924          ORIX query (https://orix.fandom.com/wiki/ORIX_Wiki)
-rlvrs        -1812221819        RLV relay (https://wiki.secondlife.com/wiki/LSL_Protocol/Restrained_Love_Relay/Specification)
-lights        **                Nanite Systems Light Bus (http://develop.nanite-systems.com/?light_bus)
+orix-alt            9360              Alternate channel for orix
+pds                 5201              Nanite Systems Power Distribution System
+facet               5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
+caps                411               CAPS itself (this document; optional)
+touch               411               The device supports the HW-CAPS 'touch' extension (see 3.3. TOUCH)
+acs                 360               Autonomy Control Systems CCU protocol (http://develop.nanite-systems.com/resources/ACS-charging.pdf)
+command             1*                Generic term for command handler using a name-based prefix (commonly used by collars)
+trigger             0                 Generic term for any detection of commands issued in normal local chat
+lockmeister        -8888              LockMeister system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockMeister_System)
+lockguard          -9119				LockGuard system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockGuard)
+hudware            -82104             NANOCOM HUDware bidirectional (http://develop.nanite-systems.com/HUDware)
+ao-link            -782690            OpenCollar AO Link
+stargate           -900000            Alteran Stargate Network
+public-collective  -9345678           K-Edge Designs Collective public bus (https://docs.google.com/document/d/1ufohglm6JbFpCxPCOu3xjaLEAZTvYvi334wEDprko_U)
+arena              -9990009           ATOS Arena
+tesi               -9999969           Nanite Systems TESI Lust (http://develop.nanite-systems.com/?id=1924#LC%20messages)
+public             -9999999           Nanite Systems public bus (http://develop.nanite-systems.com/public)
+public-alt         -9999998           Alternate channel for Nanite Systems public bus
+weather            -78838783          Nanite Systems Weather Service
+orix               -15180924          ORIX query (https://orix.fandom.com/wiki/ORIX_Wiki)
+rlvrs              -1812221819        RLV relay (https://wiki.secondlife.com/wiki/LSL_Protocol/Restrained_Love_Relay/Specification)
+lights              **                Nanite Systems internal device bus (http://develop.nanite-systems.com/light_bus)
+internal-collective **                K-Edge Designs Collective internal bus (https://docs.google.com/document/d/1ufohglm6JbFpCxPCOu3xjaLEAZTvYvi334wEDprko_U)
 ----------------------------------------------------------------------------------------
-** No set channel number, or channel number decided based on object key
+** No set channel number, or channel number derived from object key
 * Channel number is only a default; may vary based on user preferences
 
 See also other protocols at https://wiki.secondlife.com/wiki/LSL_Protocol
