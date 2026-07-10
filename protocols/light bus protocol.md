@@ -313,6 +313,19 @@ Register a federated `@` command with the system. Active until the device is rem
 
 ---
 
+### `animate start <name>`
+_(ARES)_ Starts playing the specified animation. Animation must be visible to link 2 of the system (s_dead, s_charging, etc, or a Linden built-in animation)
+
+### `animate stop <name>`
+_(ARES)_ Stops playing the specified animation. Animation must have previously been started using `start` above.
+
+### `animate clear`
+_(ARES)_ Stops playing all animations started by the device.
+
+> Animations created via this mechanism will automatically be cleared when the device is removed, including if it is automatically removed due to being derezzed.
+
+---
+
 ### `auth <device> <key>`
 Ask the system to verify that user `<key>` has local access. If authorized, the system responds with `accept <key>`. If not, the system notifies the user directly; the device receives no response.
 
