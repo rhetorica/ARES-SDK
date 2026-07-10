@@ -3,7 +3,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2023 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -268,7 +268,16 @@ default {
 			#ifdef EXT_MSG_HANDLER
 				#include EXT_MSG_HANDLER
 			#endif
-			else {
+			else if(n == SIGNAL_SYNOPSIS) {
+				_output_s = substr(remainder, 2, 37);
+				_input_s = substr(remainder, 39, 74);
+				_user = substr(remainder, 76, 111);
+				#ifndef NO_SYNOPSIS
+				print(_output_s, _user, (string)PROGRAM_NUMBER + " " + PROGRAM_NAME + "\n" + CLIENT_VERSION + " " + CLIENT_VERSION_TAGS + "\n" + ARES_VERSION + " " + ARES_VERSION_TAGS + "\n" + __DATE__ + " " + __TIME__ + "\n" + (string)llGetFreeMemory() + " " + (string)llGetUsedMemory() + " " + (string)llGetMemoryLimit());
+				#else
+				print(_output_s, _user, "no synopsis");
+				#endif
+			} else {
 				main(_resolved = 0, n, remainder, NULL_KEY, NULL_KEY, NULL_KEY);
 			}
 			

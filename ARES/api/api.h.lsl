@@ -3,7 +3,7 @@
  *
  *           Nanite Systems Advanced Research Encapsulation System
  *  
- *            Copyright (c) 2022–2024 Nanite Systems Corporation
+ *            Copyright (c) 2022–2026 Nanite Systems Corporation
  *  
  * =========================================================================
  *
@@ -69,6 +69,9 @@
 
 // send a message from one daemon to another (message number is unencoded)
 #define daemon_to_daemon(_e_daemon, _message_number, _message) system(_message_number, _e_daemon + E_PROGRAM_NUMBER + _message)
+
+// get information about a specific program and send to specified output pipe: (input pipe for job receipt)
+#define get_synopsis(_program, _output_pipe, _input_pipe, _user) system(SIGNAL_SYNOPSIS, E_UNKNOWN + E_PROGRAM_NUMBER + (string)(_output_pipe) + " " + (string)(_input_pipe) + " " + (string)(_user) + " " + _program)
 
 /* Inclusions of ARES API components */
 
