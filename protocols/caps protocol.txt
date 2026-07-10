@@ -1,12 +1,12 @@
 
 A. Lazuli
 Nanite Systems Communications Corporation (NANOCOM)
-March 2026
+July 2026
 
 Signals Protocol Working Group
 PUBLIC MEMO
 
-VERSION 0.5
+VERSION 0.5.1
 
 
 Status of this Memo
@@ -113,13 +113,37 @@ If a client sends the message:
 
 	touch <uuid>
 
+or
+
+	touch
+
 on the query channel, and <uuid> is one of:
 
 	(a) the client,
-	(b) the client's OBJECT_ROOT_KEY as determined by llGetObjectDetails(), or
+	(b) the client's OBJECT_ROOT as determined by llGetObjectDetails(), or
 	(c) the client's owner as determined by llGetOwnerKey(),
 
-and the HW-CAPS host has some sort of generic touch response, then the host may emulate a touch event, treating <uuid> as the source of the touch event. HW-CAPS objects are not obligated to honor touch messages, and in some cases objects with touch handlers will not be able to handle generic touches like this, e.g. because further clarification is required, such as a specific element on a menu system.
+and the HW-CAPS host has some sort of generic touch response, then the host may emulate a touch event, treating <uuid> as the source of the touch event.
+
+Alternatively, if (d) the <uuid> is absent, then the source depends on OBJECT_ATTACHED_POS. Determine whether:
+
+	(d.1) the object is an attachment (OBJECT_ATTACHED_POS is non-zero), in which case the source is its llGetOwnerKey()
+	(d.2) the object is not an attachment (OBJECT_ATTACHED_POS is non-zero), in which case the source is its OBJECT_ROOT
+
+Here is an example of the above discrimination mechanism (ARES LSL):
+
+	if(substr(message, 0, 5) == "touch ") {
+		key tid = delstring(message, 0, 5);
+		if(tid == id || tid == getk(geto(id, [OBJECT_ROOT]), 0) || tid == llGetOwnerKey(id))
+			do_touch(tid);
+	} else if(message == "touch") {
+		if(geti(geto(id, [OBJECT_ATTACHED_POINT]), 0))
+			do_touch(llGetOwnerKey(id));
+		else
+			do_touch(getk(geto(id, [OBJECT_ROOT]), 0));
+	}
+
+HW-CAPS objects are not obligated to honor touch messages, and in some cases objects with touch handlers will not be able to handle generic touches like this, e.g. because further clarification is required, such as a specific element on a menu system.
 
 Nevertheless, for equipment where a plain touch event is useful, such as a door panel or plug-in power outlet, a nulladic 'touch' signal is potentially valuable.
 
@@ -215,7 +239,7 @@ Although AV-CAPS can be used to provision any attachments on the avatar, its uti
 
 Services should ignore these messages if they are sent from a UUID that is not attached to the owning avatar, i.e.
 
-	llList2Integer(llGetObjectDetails(source, [OBJECT_ATTACHMENT_POS]), 0) == 0 || llGetOwnerKey(source) != llGetOwner()
+	llList2Integer(llGetObjectDetails(source, [OBJECT_ATTACHED_POINT]), 0) == 0 || llGetOwnerKey(source) != llGetOwner()
 
 where "source" is the UUID of the object sending the messages in question.
 
