@@ -10,7 +10,7 @@
    *                                                         *
    *                    OBJECTS COMPONENT                    *
    *                                                         *
-   *        Copyright, (C) Nanite Systems Corp., 2021        *
+   *       Copyright, (C) Nanite Systems Corp., 2021-26      *
    *                                                         *
    ***********************************************************
    
