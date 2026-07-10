@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.3.0"
+#define CLIENT_VERSION "1.4.0"
 #define CLIENT_VERSION_TAGS "release"
 
 // how long to pause for message syncopation after receiving SIGNAL_DONE when -t and -q are not present:
@@ -96,8 +96,13 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 		
 		integer trust = 1;
 		integer quick_mode;
+		integer synopsis_mode = 0;
+		
 		if(gets(argv, 1) == "-q") {
 			quick_mode = 1;
+			argv = delitem(argv, 1);
+		} else if(gets(argv, 1) == "-s") {
+			synopsis_mode = 1;
 			argv = delitem(argv, 1);
 		} else if(gets(argv, 1) == "-t") {
 			trust = 0;
@@ -111,6 +116,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			msg = "Syntax for " + PROGRAM_NAME + ":"
 			
 			+ "\n\n    " + PROGRAM_NAME + " [-q|-t] <variable> <command>: run <command> and store output in LSD:env.<variable>"
+			  + "\n    " + PROGRAM_NAME + " -s <variable> <program>: get version and memory info for specified program binary and store in LSD:env.<variable> (ARES 0.5.8)"
 			  + "\n    " + PROGRAM_NAME + " <variable> = <database.entry>: put contents of LSD:<database.entry> into LSD:env.<variable>"
 			  + "\n    " + PROGRAM_NAME + " <variable> = %keys <database.entry>: put keys of LSD:<database.entry> into LSD:env.<variable>, concatenated with spaces"
 			  + "\n    " + PROGRAM_NAME + " <variable> = %values <database.entry>: put values of LSD:<database.entry> into LSD:env.<variable>, concatenated with linebreaks"
@@ -168,6 +174,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					"user", user, // who we're doing this for
 					"done", 0, // turns to 1 once we receive DONE
 					"data", trust, // turns to 1 once we receive data
+					"synopsis", synopsis_mode, // use get_synopsis() instead of invoke()?
 					"q", (quick_mode || !trust) // if quick mode is enabled or trust mode is disabled, don't use the timer
 				]));
 				
@@ -217,7 +224,11 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				
 				string command = getjs(tasks_queue, [tag, "command"]);
 				
-				invoke(command, ins, tag, getjs(tasks_queue, [tag, "user"]));
+				integer synopsis_mode = (integer)getjs(tasks_queue, [tag, "synopsis"]);
+				if(synopsis_mode)
+					get_synopsis(command, ins, tag, getjs(tasks_queue, [tag, "user"]));
+				else
+					invoke(command, ins, tag, getjs(tasks_queue, [tag, "user"]));
 				#ifdef DEBUG
 					echo("xset: invoked " + command);
 				#endif
