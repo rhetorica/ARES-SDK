@@ -34,7 +34,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.1.1"
+#define CLIENT_VERSION "1.1.2"
 #define CLIENT_VERSION_TAGS "release"
 
 #define FILE_STEP_SIZE 4
