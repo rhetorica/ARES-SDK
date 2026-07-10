@@ -124,6 +124,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			
 			if(type == INVENTORY_SCRIPT) {
 				msg += "\nRunning: " + gets(["no", "yes"], llGetScriptState(file));
+				
+				msg += "\n(if supported by the binary, a script metadata synopsis will follow)";
+				get_synopsis(file, outs, ins, user);
 			}
 			
 		} else if(action == "dbread" || action == "dbprint") {
