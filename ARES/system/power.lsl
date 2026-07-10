@@ -199,9 +199,9 @@ apply_state(integer update, integer report_state) {
 			["on"], (string)power_on);
 		llLinksetDataWrite("status", s_status);
 		
-		e_call(C_STATUS, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " status update");
+		call_status(avatar, avatar, "update");
 		llSleep(0.25);
-		e_call(C_THERMAL, E_SIGNAL_CALL, (string)avatar + " " + (string)avatar + " thermal update");
+		call_thermal(avatar, avatar, "update");
 	}
 	
 	// task_end(ek);
@@ -554,6 +554,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				power_state_last = power_state;
 				forbidden_state = (integer)getdbl("status", ["forbidden"]);
 				apply_state(TRUE, FALSE);
+				
 			} else if(cmd == "charged") {
 				// integer charge_bootable = (status == "y");
 				// no code required here - will occur automatically
@@ -650,7 +651,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					if(new_EPS_on != EPS_active) {
 						if(power_on && new_EPS_on) {
 							EPS_active = FALSE;
-							echo("[_power] Not entering EPS; power is on.");
+							// echo("[_power] Not entering EPS; power is on.");
 						} else {
 							EPS_active = new_EPS_on;
 							apply_EPS(EPS_active);

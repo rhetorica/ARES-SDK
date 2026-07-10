@@ -35,10 +35,6 @@
 #include <ARES/a>
 #include <ARES/api/interface.consts.h.lsl>
 
-#define call_interface(_outs, _user, _msg) \
-			system(SIGNAL_CALL, E_INTERFACE + E_PROGRAM_NUMBER \
-				+ (string)_outs + " " + (string)_user + " interface " + (_msg));
-
 #define CLIENT_VERSION ARES_VERSION
 #define CLIENT_VERSION_TAGS ARES_VERSION_TAGS
 
