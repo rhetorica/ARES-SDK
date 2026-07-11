@@ -6,7 +6,7 @@ July 2026
 Signals Protocol Working Group
 PUBLIC MEMO
 
-VERSION 0.5.1
+VERSION 0.5.2
 
 
 Status of this Memo
@@ -399,34 +399,36 @@ Appendix B: HW-CAPS Channels
 
 The following channels should be listed for HW-CAPS if relevant.  Advertising additional services beyond those listed here is allowed and encouraged.  Please contact the author if you would like a service to be added to ensure it receives a consistent name across implementations.
 
-Service             Channel			  Description
-----------------------------------------------------------------------------------------
-orix-alt            9360              Alternate channel for orix
-pds                 5201              Nanite Systems Power Distribution System
-facet               5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
-caps                411               CAPS itself (this document; optional)
-touch               411               The device supports the HW-CAPS 'touch' extension (see 3.3. TOUCH)
-acs                 360               Autonomy Control Systems CCU protocol (http://develop.nanite-systems.com/resources/ACS-charging.pdf)
-command             1*                Generic term for command handler using a name-based prefix (commonly used by collars)
-trigger             0                 Generic term for any detection of commands issued in normal local chat
-lockmeister        -8888              LockMeister system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockMeister_System)
-lockguard          -9119				LockGuard system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockGuard)
-hudware            -82104             NANOCOM HUDware bidirectional (http://develop.nanite-systems.com/HUDware)
-ao-link            -782690            OpenCollar AO Link
-stargate           -900000            Alteran Stargate Network
-public-collective  -9345678           K-Edge Designs Collective public bus (https://docs.google.com/document/d/1ufohglm6JbFpCxPCOu3xjaLEAZTvYvi334wEDprko_U)
-arena              -9990009           ATOS Arena
-tesi               -9999969           Nanite Systems TESI Lust (http://develop.nanite-systems.com/?id=1924#LC%20messages)
-public             -9999999           Nanite Systems public bus (http://develop.nanite-systems.com/public)
-public-alt         -9999998           Alternate channel for Nanite Systems public bus
-weather            -78838783          Nanite Systems Weather Service
-orix               -15180924          ORIX query (https://orix.fandom.com/wiki/ORIX_Wiki)
-rlvrs              -1812221819        RLV relay (https://wiki.secondlife.com/wiki/LSL_Protocol/Restrained_Love_Relay/Specification)
-lights              **                Nanite Systems internal device bus (http://develop.nanite-systems.com/light_bus)
-internal-collective **                K-Edge Designs Collective internal bus (https://docs.google.com/document/d/1ufohglm6JbFpCxPCOu3xjaLEAZTvYvi334wEDprko_U)
-----------------------------------------------------------------------------------------
+Service              Channel           Description
+-------------------------------------------------------------------------------
+orix-alt             9360              Alternate channel for orix
+pds                  5201              Nanite Systems Power Distribution System
+facet                5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
+caps                 411               CAPS itself (this document; optional)
+touch                411               The device supports the HW-CAPS 'touch' extension (see 3.3. TOUCH)
+acs                  360               Autonomy Control Systems CCU protocol (http://develop.nanite-systems.com/resources/ACS-charging.pdf)
+command              1*                Generic term for command handler using a name-based prefix (commonly used by collars)
+trigger              0                 Generic term for any detection of commands issued in normal local chat
+lockmeister         -8888              LockMeister system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockMeister_System)
+lockguard           -9119	           LockGuard system for particle chains (https://wiki.secondlife.com/wiki/LSL_Protocol/LockGuard)
+hudware             -82104             NANOCOM HUDware bidirectional (http://develop.nanite-systems.com/HUDware)
+ao-link             -782690            OpenCollar AO Link
+stargate            -900000            Alteran Stargate Network
+public-collective   -9345678           K-Edge Designs Collective public bus (https://docs.google.com/document/d/1ufohglm6JbFpCxPCOu3xjaLEAZTvYvi334wEDprko_U)
+arena               -9990009           ATOS Arena
+tesi                -9999969           Nanite Systems TESI Lust (http://develop.nanite-systems.com/?id=1924#LC%20messages)
+public-ns           -9999999           Nanite Systems public bus (http://develop.nanite-systems.com/public)
+public-ns-alt       -9999998           Alternate channel for Nanite Systems public bus
+public               *                 Generic term for any channel that resembles public-ns
+public-alt           *                 Legacy synonym for public-ns-alt
+weather             -78838783          Nanite Systems Weather Service
+orix                -15180924          ORIX query (https://orix.fandom.com/wiki/ORIX_Wiki)
+rlvrs               -1812221819        RLV relay (https://wiki.secondlife.com/wiki/LSL_Protocol/Restrained_Love_Relay/Specification)
+lights               **                Nanite Systems internal device bus (http://develop.nanite-systems.com/light_bus)
+internal-collective  **                K-Edge Designs Collective internal bus (https://docs.google.com/document/d/1ufohglm6JbFpCxPCOu3xjaLEAZTvYvi334wEDprko_U)
+-------------------------------------------------------------------------------
 ** No set channel number, or channel number derived from object key
-* Channel number is only a default; may vary based on user preferences
+* Channel number is only a default; may vary based on user preferences or vendor
 
 See also other protocols at https://wiki.secondlife.com/wiki/LSL_Protocol
 
