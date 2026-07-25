@@ -179,7 +179,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				return;
 			}
 		
-			integer trigger_color_update = 0;
+			integer trigger_recolor = 0;
+			key recolor_target;
+			
 			string action = gets(argv, 1);
 			if(action == "regen" || action == "regenerate") {
 				integer mantissa = (integer)("0x" + substr(llGetOwner(), 29, 35)) % 1000000;
@@ -515,7 +517,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 								vec2str(cd)
 							]));
 							
-							trigger_color_update = 1;
+							trigger_recolor = 1;
 							msg = "Color updated.";
 							
 						} else if(action == 2) { // save <scheme_name>
@@ -546,7 +548,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 									colors = alter(colors, [str2vec(getjs(colorlist, [ci]))], ci, ci);
 								}
 								
-								trigger_color_update = 1;
+								trigger_recolor = 1;
 								msg = "Color scheme '" + scheme_name + "' loaded.";
 							} else {
 								msg = "No color scheme: '" + scheme_name + "'";
@@ -649,23 +651,32 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				}
 			
 			} else if(action == "recolor") {
-				trigger_color_update = 1;
+				trigger_recolor = 1;
+				if(argc > 2)
+					recolor_target = (key)gets(argv, 2);
 			
 			} else {
 				msg = PROGRAM_NAME + ": Unrecognized action '" + action + "'; see 'help id' for a list of valid actions";
 			}
 			
-			if(trigger_color_update) {				
+			if(trigger_recolor) {
 				// look away, children:
 				string color_list = concat(llParseString2List(concat(colors, " "), ["<", ">", ","], []), "");
-			
+				
+				if(recolor_target)
+					trigger_event([EVENT_COLOR, color_list, recolor_target]);
+				else
+					trigger_event([EVENT_COLOR, color_list]);
+				
+				/*
 				e_call(C_INTERFACE, E_SIGNAL_CALL, (string)outs + " " + (string)user + " interface color " + color_list);
 				e_call(C_VARIATYPE, E_SIGNAL_CALL, (string)outs + " " + (string)user + " variatype color " + color_list);
 				e_call(C_HARDWARE, E_SIGNAL_CALL, (string)NULL_KEY + " " + (string)NULL_KEY + " hardware color " + color_list);
-				// no keys = tell device to send update to all devices
+				// null uuids = tell hardware to send update to all devices
 				e_call(C_REPAIR, E_SIGNAL_CALL, (string)outs + " " + (string)user + " repair color " + color_list);
 				e_call(C_STATUS, E_SIGNAL_CALL, (string)outs + " " + (string)user + " status color " + color_list);
 				e_call(C_THERMAL, E_SIGNAL_CALL, (string)outs + " " + (string)user + " thermal color " + color_list);
+				*/
 			}
 		}
 		
