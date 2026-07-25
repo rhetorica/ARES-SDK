@@ -132,12 +132,17 @@ The unit's motors have been locked or released for a reason other than normal mo
 
 ---
 
-### `fx <effect>`
+### `fx <effect> <parameters>`
 Trigger a visual or audio effect on the device. The effect name is a single word.
 
-> **Observed values:** `spark` — trigger spark/electrical effect.
-> Other effect names are likely supported; handle unknown values gracefully.
-
+**Observed values:**
+| effect       | parameters                 | observed result                                                                       |
+|--------------|----------------------------|---------------------------------------------------------------------------------------|
+| `spark`      | *none*                     | Triggers a spark/electrical effect                                                    |
+| `s`          | `UUID`, `volume (0.0-1.0)` | Plays sound `UUID` through controller speaker at `volume`.                            |
+| `tp`         | *none*                     | Suppresses the next teleport flash effect the controller would generate.              |
+| `repair`     | *none*                     | If `repairing` state is active, play controller repair nanites sound/particles.       |
+| `reclaim`    | *none*                     | Plays controller reclamation sound/particles                                          |
 ---
 
 ### `gender <topic> <value>`
