@@ -35,7 +35,7 @@
  */
 
 #ifndef _ARES_SEXUALITY_H_
-#define SEXUALITY_VERSION "0.9.5"
+#define SEXUALITY_VERSION "0.9.5.2"
 #define SEXUALITY_VERSION_TAGS "preview 4"
 
 #define C_LUST -9999969
