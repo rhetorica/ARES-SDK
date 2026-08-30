@@ -401,6 +401,7 @@ The following channels should be listed for HW-CAPS if relevant.  Advertising ad
 
 Service              Channel           Description
 -------------------------------------------------------------------------------
+gdns                 1196576324        Grid Domain Name Service
 orix-alt             9360              Alternate channel for orix
 pds                  5201              Nanite Systems Power Distribution System
 facet                5200              Nanite Systems Facet interface (http://develop.nanite-systems.com/?facet)
