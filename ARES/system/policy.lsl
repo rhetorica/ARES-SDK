@@ -215,13 +215,16 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				m = "* unlock";
 				jump restart_main;
 			} else */
-			{
+			if(password != "") {
 				setdbl("policy", ["lock"], "1");
 				msg = "Unit locked.";
 				
 				announce("lock-1");
 				io_tell(NULL_KEY, C_LIGHT_BUS, "locked");
 				notify_program("security power", outs, NULL_KEY, user);
+			} else {
+				msg = "Please set a password first.";
+				announce("error");
 			}
 			
 		} else if(action == "unlock") {
