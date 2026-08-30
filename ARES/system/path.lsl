@@ -229,7 +229,7 @@ broadcast(string message) {
 				"args", jsarray(delrange(args, 0, 1))
 			]);
 			llHTTPRequest(callback, [HTTP_METHOD, "POST"], body);
-		} else if(llGetOwnerKey(host) != host && llGetAgentSize(host) == ZV && host != NULL_KEY) {
+		} else if(object_exists(host) && !is_avatar(host)) {
 			tell(host, C_PHASE_PROTOCOL, message);
 		}
 	}
@@ -249,7 +249,7 @@ broadcast(string message) {
 					"args", jsarray(delrange(args, 0, 1))
 				]);
 				llHTTPRequest(callback, [HTTP_METHOD, "POST"], body);
-			} else if(llGetOwnerKey(host) != host && llGetAgentSize(host) == ZV && host != NULL_KEY) {
+			} else if(object_exists(host) && !is_avatar(host)) {
 				tell(host, C_PHASE_PROTOCOL, message);
 			}
 		}
@@ -359,7 +359,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				key host = gets(host_keys, hi);
 				string callback = getjs(hosts, [(string)host, 2]);
 				if((callback == "" || callback == JSON_INVALID)
-				&& llGetOwnerKey(host) == host && llGetAgentSize(host) == ZV)
+				&& object_exists(host) && !is_avatar(host))
 					disconnect(host);
 			}
 			

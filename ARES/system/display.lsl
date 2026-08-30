@@ -588,7 +588,7 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 			}
 			
 			if(update_display) {
-				if(weapon != "" && weapon != NULL_KEY && llGetOwnerKey(weapon) != weapon) {
+				if(object_exists(weapon)) {
 					if(weapon_shot_cost == 0)
 						return;
 					

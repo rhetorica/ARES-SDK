@@ -61,6 +61,18 @@
 	#define object_pos(__object) llList2Vector(llGetObjectDetails(__object, [OBJECT_POS]), 0)
 #endif
 
+#ifndef object_exists
+	#define object_exists(__object) llGetListLength(llGetObjectDetails(__object, [OBJECT_POS]))
+#endif
+
+#ifndef is_avatar
+	#define is_avatar(__object) (llGetAgentSize(__object) != ZERO_VECTOR)
+#endif
+
+#ifndef avatar_exists
+	#define avatar_exists(__object) (llGetAgentSize(__object) != ZERO_VECTOR)
+#endif
+
 #define OVER_1024 0.0009765625
 #define OVER_512 0.001953125
 #define OVER_256 0.00390625

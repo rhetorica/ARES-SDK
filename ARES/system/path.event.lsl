@@ -78,7 +78,7 @@
 							"args", full_url
 						]);
 						llHTTPRequest(callback, [HTTP_METHOD, "POST"], body);
-					} else if(llGetOwnerKey(host) != host && llGetAgentSize(host) == ZV && host != NULL_KEY) {
+					} else if(object_exists(host) && !is_avatar(host)) {
 						tell(host, C_PHASE_PROTOCOL, token + " " + full_url);
 					} else {
 						disconnect(token);
