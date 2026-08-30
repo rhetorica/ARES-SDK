@@ -185,31 +185,31 @@ Some highlights are:
 | `echo` | `llOwnerSay` |
 | `tell` | `llRegionSayTo` |
 | `js2list` | `llJson2List` |
-| `jsarray` | `llList2JSON(JSON\_ARRAY, ...)` |
-| `jsobject` | `llList2JSON(JSON\_OBJECT, ...)` |
+| `jsarray` | `llList2JSON(JSON_ARRAY, ...)` |
+| `jsobject` | `llList2JSON(JSON_OBJECT, ...)` |
 | `linked` | `llMessageLinked` |
 | `split` | `llParseString2List` for one separator |
 | `splitnulls` | `llParseStringKeepNulls` for one separator |
-| `concat` | `llDumpList2String`(worst name award) |
+| `concat` | `llDumpList2String` (worst name award) |
 | `delrange` | `llDeleteSubList` |
 | `delitem` | `llDeleteSubList` for one item |
 | `insert` | `llListInsertList` |
 | `shuffle` | `llListRandomize` |
 | `replace` | `llReplaceSubString` |
-| `NOWHERE` | `0xFFFFFFFF`(for invalid indices; uses less bytecode than \-1) |
-| `LAST` | `0xFFFFFFFF`(for getting the last item in a list; less bytecode than \-1) |
+| `NOWHERE` | `0xFFFFFFFF` (for invalid indices; uses less bytecode than \-1) |
+| `LAST` | `0xFFFFFFFF` (for getting the last item in a list; less bytecode than \-1) |
 | `setp` | `llSetLinkPrimitiveParamsFast` |
 | `getp` | `llGetLinkPrimitiveParams` |
 | `geto` | `llGetObjectDetails` |
-| `ZR` | `ZERO\_ROTATION` |
-| `ZV` | `ZERO\_VECTOR` |
-| `ONES` | `\<1, 1, 1\>` |
+| `ZR` | `ZERO_ROTATION` |
+| `ZV` | `ZERO_VECTOR` |
+| `ONES` | `<1, 1, 1>` |
 
 Both utils.lsl and objects.lsl include numerous convenience functions besides the simple macros listed here, especially list manipulation functions. If you are reviewing NS source code and don't recognize a symbol, chances are good that it is defined in one of these two files.
 
 # Routed Message Dispatch
 
-The standard mechanism for inter-script communication is `llMessageLinked()` and `link\_message`. This has a hidden flaw which is not immediately apparent in toy examples: link messages are multicast, and are received by *all* scripts in the target link. If the source and target prim are the same, then even the sender receives the message, provided it has a `link\_message` event of its own. Occasionally this behavior is desirable, but for any project containing a number of scripts equal to N in the same prim, the spurious script activations quickly become immense. Consider:
+The standard mechanism for inter-script communication is `llMessageLinked()` and `link_message`. This has a hidden flaw which is not immediately apparent in toy examples: link messages are multicast, and are received by *all* scripts in the target link. If the source and target prim are the same, then even the sender receives the message, provided it has a `link_message` event of its own. Occasionally this behavior is desirable, but for any project containing a number of scripts equal to N in the same prim, the spurious script activations quickly become immense. Consider:
 
 	Script 1 sends "`ping`" to all other components
 	Scripts 1..N receive the "`ping`" message and reply "`pong`"
@@ -231,6 +231,6 @@ The routed dispatch approach rejects link messages entirely in favor of llRegion
 
 This has some overhead—two events must be handled in sequence instead of one—but because each client script can listen on a unique channel, script A and B can be colocated without any crosstalk whatsoever. In ARES, the dispatcher is called the kernel, which is named Psyche; Psyche is also used in the AHM (DSA) client.
 
-To add multicast messages to this model, additional strategies are required: clients register their interest in handling certain multicast signals with a repeater script, which then amplifies the signal when it is actually triggered. In ARES, these are called events, and the repeater script is a daemon called `\_scheduler`.
+To add multicast messages to this model, additional strategies are required: clients register their interest in handling certain multicast signals with a repeater script, which then amplifies the signal when it is actually triggered. In ARES, these are called events, and the repeater script is a daemon called `_scheduler`.
 
 Messages need not be prefixed with a script's entire name; in practice it is often wiser to use some fixed-length encoding representing a job number or similar. ARES uses a custom base 64 encoding with a two-byte field to represent a PID in the range 0-4095, which programs are assigned during initial registration. These PIDs also form the basis of the channel on which each client script receives incoming messages.
