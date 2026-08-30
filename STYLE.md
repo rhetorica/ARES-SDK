@@ -14,7 +14,7 @@ The NS style extends this to all blocks:
 
 ```
 default {  
-    state\_entry() {
+    state_entry() {
 ```
 
 It also removes spaces from between flow control operators and their following parenthesis, for consistency with the appearance of functions:
@@ -39,11 +39,11 @@ Consequently, industry-standard best practices—like breaking code up into many
 
 ```
 listen(integer c, string n, key id, string m) {  
-	if(m \== "on") {  
-		power\_on \= 1;  
+	if(m == "on") {  
+		power_on = 1;  
 		jump update;  
-	} else if(m \== "off") {  
-		power\_on \= 0;  
+	} else if(m == "off") {  
+		power_on = 0;  
 		jump update;  
 	}  
 	jump end; // a simple 'return' here causes a warning about unreachable code  
@@ -93,7 +93,7 @@ With JSON:
 		"Jane", jsarray(["guava", "fuchsia", 69])
 	]);
 	// it is more typical to see the above specified as a raw string however -- this is much more memory-efficient:
-	string favorites = "{\"Bob\":[\"apple\",\"red\",3],\"Jane\":[\"guava\",\"fuchsia\",69]}";
+	string favorites = "{\"Bob\":\["apple\",\"red\",3],\"Jane\":[\"guava\",\"fuchsia\",69]}";
 	
 	// retrieving a single value:
 	string attributes = getjs(favorites, ["Jane"]);
@@ -122,9 +122,9 @@ Fully familiarizing yourself with the JSON manipulation syntax takes a bit of ti
 4. If you simply need to iterate over a list of items, most `for` loops can be implemented as `while` loops instead:  
 
 ```
-integer a \= 0;  
-integer b \= 10;  
-for(a \= 0; a \< b; \++a) {  
+integer a = 0;  
+integer b = 10;  
+for(a = 0; a < b; ++a) {  
 	llOwnerSay((string)a); // prints 0 through 9  
 }
 ```   
@@ -132,7 +132,7 @@ for(a \= 0; a \< b; \++a) {
 becomes:
 
 ```
-integer a \= 10;  
+integer a = 10;  
 while(a--) {  
 	llOwnerSay((string)a); // prints 9 through 0  
 }
@@ -151,8 +151,8 @@ Fortunately there is a band-aid we can slap over this mess in the form of prepro
 To use the NS macros, add:
 
 ```
-\#include \<utils.lsl\>  
-\#include \<objects.lsl\>
+#include <utils.lsl>  
+#include <objects.lsl>
 ```
 
 to the top of your script, and make sure these files are in your Firestorm preprocessor's \#includes directory:
