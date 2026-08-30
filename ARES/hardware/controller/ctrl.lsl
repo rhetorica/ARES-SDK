@@ -78,6 +78,9 @@
 
 // all supported hooks and overrides:
 
+// #define AUTOEXEC_DISTRIBUTOR
+// automatically attempt to install autoexec.as (requires support in breakout module)
+
 // #define ALL_CAPS
 // convert all UI text to caps
 // #define POWER_OFF_BY_DEFAULT
@@ -257,10 +260,10 @@ float lubricant = 1.0;
 #else
 	integer power_on = 1;
 #endif
-integer opo;
-integer obo;
+integer opower_on;
+integer obroken;
 #ifdef RECOLOR_ON_WORKING
-integer owo;
+integer oworking;
 #endif
 
 #ifndef SOCKET_NAME
@@ -300,6 +303,10 @@ integer silence_menu;
 
 // version reported to system over light bus:
 #define VERSION "9.0"
+
+#ifdef AUTOEXEC_DISTRIBUTOR
+string ARES_VERSION = "0.5.8";
+#endif
 
 #ifndef FAN_AXIS
 	#define FAN_AXIS <0, 0, 1>
@@ -414,7 +421,7 @@ clear_screen(integer partial) {
 
 lights() {
 	float power_factor = power_on;
-	if(broken && power_on && obo == 1) // first frame of broken state must be at full brightness (protects menus)
+	if(broken && power_on && obroken == 1) // first frame of broken state must be at full brightness (protects menus)
 		power_factor = llFrand(1.0);
 	
 	list actions = [];
@@ -500,9 +507,9 @@ lights() {
 	}
 	#endif
 	
-	integer major_pf = oc1 != c1 || oc2 != c2 || oc3 != c3 || oc4 != c4 || broken != obo || power_on != opo
+	integer major_pf = oc1 != c1 || oc2 != c2 || oc3 != c3 || oc4 != c4 || broken != obroken || power_on != opower_on
 	#ifdef RECOLOR_ON_WORKING
-	|| working != owo
+	|| working != oworking
 	#endif
 	;
 	
@@ -553,14 +560,14 @@ lights() {
 			}
 		}
 		
-		obo = broken;
-		opo = power_on;
+		obroken = broken;
+		opower_on = power_on;
 		oc1 = c1;
 		oc2 = c2;
 		oc3 = c3;
 		oc4 = c4;
 		#ifdef RECOLOR_ON_WORKING
-		owo = working;
+		oworking = working;
 		#endif
 	}
 	
@@ -1307,6 +1314,10 @@ default {
 				} else if(cmd == "command") {
 					linked(LINK_THIS, 0, m, id);
 				#endif
+				#ifdef AUTOEXEC_DISTRIBUTOR
+				} else if(cmd == "authorized") {
+					linked(LINK_THIS, 1, "sideload " + ARES_VERSION, id);
+				#endif
 				} else if(cmd == "conf") {
 					/*list lines = split(delstring(m, 0, 4), "\n"); // remove 'conf '
 					integer i = count(lines);
@@ -1318,6 +1329,18 @@ default {
 							soothe = (integer)getjs(p, ["soothe"]);
 						} else if(a1 == "id.callsign") {
 							llSetObjectName(p + " (controller)");
+							
+						#ifdef AUTOEXEC_DISTRIBUTOR
+						
+							if((p == "NS unit" || p == JSON_INVALID)
+							&& llGetInventoryType("autoexec.as") == INVENTORY_NOTECARD)
+								tell(id, c, "conf-get pkg.version.ARES");
+						} else if(a1 == "pkg.version.ARES") {
+							ARES_VERSION = p;
+							tell(id, c, "command " + (string)avatar + " " + (string)avatar + " device controller authorized");
+						
+						#endif
+						
 						} else if(a1 == "interface.sound") {
 							sounds = p;
 						}
