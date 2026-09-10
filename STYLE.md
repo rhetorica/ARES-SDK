@@ -23,7 +23,7 @@ It also removes spaces from between flow control operators and their following p
 if(x) {
 ```
 
-This habit is common among former BASIC programmers. Most BASIC development environments perform tokenization and linting on a line-by-line basis during the editing process, and will eat stray whitespace.
+This habit is common among former BASIC programmers. Most BASIC development environments perform tokenization and linting on a line-by-line basis during the editing process, and will eat stray whitespace. BASIC does not have any constructs where a flow control keyword is obliged to be followed by a parenthesis, so programmers used to appeasing BASIC development environments interpret the notation for C-style flow control as something more familiar: a group of built-in functions, which are then punctuated according to BASIC's expectations.
 
 Tab characters are generally used over spaces. The tab stop is set at 4\. SL's script editor window doesn't like this very much (it often causes the Firestorm preprocessor's error hints to yield an invalid position), but when using an external editor, it means pressing Backspace to delete a level of indentation is much easier.
 
