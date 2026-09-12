@@ -234,9 +234,14 @@ string f_slang(string message, string flags) {
 				integer wi = (integer)llFrand(wc);
 				words = alter(words, [llToLower(gets(words, 0))], 0, 0);
 				words = [prefix] + llListInsertList(words, [infix], wi) + [suffix];
+			} else {
+				// just re-concatenate the punctuation:
+				words = alter(words, [gets(words, LAST) + gets(sentences, si + 1)], LAST, LAST);
 			}
 			
-			sentences = alter(sentences, [concat(words, " ")], si, si + 1);
+			// echo("replacing: " + concat(sublist(sentences, si, si + 1), "|"));
+			// echo("with: " + concat(words, " "));
+			sentences = alter(sentences, [replace(concat(words, " "), " ... ", "... ")], si, si + 1);
 		}
 	}
 	return llStringTrim(concat(sentences, ""), STRING_TRIM);
