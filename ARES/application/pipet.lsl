@@ -183,7 +183,8 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				outs = getk(queued_actions, 0);
 				user = getk(queued_actions, 1);
 				queued_actions = delrange(queued_actions, 0, 1);
-				print(outs, user, (string)ins);
+				if(outs != user)
+					print(outs, user, (string)ins);
 			}
 		} else {
 			echo("?" + m);
