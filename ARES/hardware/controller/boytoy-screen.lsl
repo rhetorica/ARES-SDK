@@ -320,7 +320,7 @@ handle_button(integer pi, key toucher) {
             llSetTimerEvent(BUTTON_B_WINDOW);
         }
     } else if(pi == B_C) {
-        send_command(toucher, "power motors off");
+        send_command(toucher, "power motors toggle");
     } else if(pi == B_D) {
         muted = !muted;
         if(muted)
