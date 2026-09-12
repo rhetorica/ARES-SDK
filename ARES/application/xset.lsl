@@ -38,7 +38,7 @@
  */
 
 #include <ARES/a>
-#define CLIENT_VERSION "1.4.0"
+#define CLIENT_VERSION "1.4.1"
 #define CLIENT_VERSION_TAGS "release"
 
 // how long to pause for message syncopation after receiving SIGNAL_DONE when -t and -q are not present:
@@ -229,8 +229,12 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 					get_synopsis(command, ins, tag, getjs(tasks_queue, [tag, "user"]));
 				else
 					invoke(command, ins, tag, getjs(tasks_queue, [tag, "user"]));
+				
 				#ifdef DEBUG
-					echo("xset: invoked " + command);
+					if(synopsis_mode)
+						echo("xset: getting synopsis for " + command);
+					else
+						echo("xset: invoked " + command);
 				#endif
 			}
 		} else if(reason == "data") {
@@ -256,8 +260,9 @@ main(integer src, integer n, string m, key outs, key ins, key user) {
 				
 				setdb("env", varname, current_value + buffer);
 				
+				integer synopsis_mode = (integer)getjs(tasks_queue, [tag, "synopsis"]);
 				integer got_done = (integer)getjs(tasks_queue, [tag, "done"]);
-				if(got_done) {
+				if(got_done || synopsis_mode) {
 					finish(tag);
 				} else {
 					tasks_queue = setjs(tasks_queue, [tag, "data"], "1");
