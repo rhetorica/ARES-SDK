@@ -40,7 +40,7 @@
 #include <ARES/a>
 #include <ARES/api/interface.consts.h.lsl>
 
-#define CLIENT_VERSION "1.0.3"
+#define CLIENT_VERSION "1.0.4"
 #define CLIENT_VERSION_TAGS "release"
 
 list savers = ["blank", "toasters", "stars", "bounce"];
