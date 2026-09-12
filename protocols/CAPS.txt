@@ -393,6 +393,7 @@ Inquiring clients that present a user interface documenting discovered CAPS host
  - thermal: Generates heat.
  - travel: Facilitates movement in some unspecified way other than a vehicle, e.g. a teleporter or jump pad.
  - vehicle: Holds individuals and provides transit.  Do not combine with purposes necessary for a vehicle to function (e.g. 'motor' or 'engine')
+ - vendor: Handles money.
 
 
 Appendix B: HW-CAPS Channels
