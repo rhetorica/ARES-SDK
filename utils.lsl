@@ -129,6 +129,9 @@
 // list jsvalues(string json): returns a list containing only the values of the provided JSON object. Will misbehave if fed a JSON array by accident. Equivalent to Object.values(obj) in Javascript.
 #define jsvalues(__jso) llList2ListStrided(llDeleteSubList(llJson2List(__jso), 0, 0), 0, LAST, 2)
 
+// list json(text): embeds raw text as a string, useful for putting JSON directly into your source code.
+#define LITERAL(...) #__VA_ARGS__
+#define json(...) LITERAL(__VA_ARGS__)
 
 // linked(integer t, integer n, string m, key id): sends a link_message() event to linked prim t, with the parameters n, m, and id. Be careful when using link_message() for complex applications, as it can not only run out of event queue space (~64 events can be queued before silent dropping occurs), but also trigger an immense amount of pointless LSL executions (64 messages received by 64 scripts = 4096 events) that severely impact sim performance. For a tight, script-to-script communication method, use llListen() with the UUID set, as this filtering is done outside LSL.
 #define linked llMessageLinked
